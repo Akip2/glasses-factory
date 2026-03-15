@@ -4,22 +4,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.example</groupId>
-    <artifactId>glasses-factory</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <parent>
+        <groupId>org.example</groupId>
+        <artifactId>glasses-factory</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
-    <modules>
-        <module>frontend</module>
-        <module>factory</module>
-        <module>server</module>
-    </modules>
+    <artifactId>factory</artifactId>
+    <packaging>jar</packaging>
 
-    <properties>
-        <maven.compiler.source>25</maven.compiler.source>
-        <maven.compiler.target>25</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/le-prof-de-raizo/repo-maven</url>
+        </repository>
+    </repositories>
     <build>
         <plugins>
             <plugin>
