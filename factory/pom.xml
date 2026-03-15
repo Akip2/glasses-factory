@@ -19,16 +19,25 @@
             <url>https://maven.pkg.github.com/le-prof-de-raizo/repo-maven</url>
         </repository>
     </repositories>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>25</source>
-                    <target>25</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>bernard-flou</groupId>
+            <artifactId>fabricateur</artifactId>
+            <version>0.0.1</version>
+        </dependency>
+    </dependencies>
 </project>
