@@ -57,7 +57,7 @@ public class HomeView {
             -fx-font-weight: bold;
             -fx-background-radius: 12;
         """);
-        catalogueBtn.setOnAction(e -> layout.setContent(new CatalogueView(layout).getView()));
+        catalogueBtn.setOnAction(e -> layout.setContent(new CatalogueView(layout, layout.getAppController().getOrderController()).getView()));
 
         Button verifyBtn = new Button("Vérifier un\nnuméro");
         verifyBtn.setPrefSize(235, 100);
@@ -70,7 +70,7 @@ public class HomeView {
             -fx-background-radius: 12;
             -fx-border-radius: 12;
         """);
-        verifyBtn.setOnAction(e -> layout.setContent(new VerificationView(layout).getView()));
+        verifyBtn.setOnAction(e -> layout.setContent(new VerificationView(layout, layout.getAppController().getSerialController()).getView()));
 
         buttons.getChildren().addAll(catalogueBtn, verifyBtn);
         textPart.getChildren().addAll(title, desc, buttons);
@@ -115,11 +115,11 @@ public class HomeView {
         actions.setAlignment(Pos.CENTER);
         actions.getChildren().addAll(
                 actionCard("🛒", "Commander", "Parcourez notre catalogue\net passez commande",
-                        () -> layout.setContent(new CatalogueView(layout).getView())),
+                        () -> layout.setContent(new CatalogueView(layout, layout.getAppController().getOrderController()).getView())),
                 actionCard("◷", "Fabrication", "Suivez la fabrication et\nrécupérez vos numéros",
-                        () -> layout.setContent(new FabricationView(layout).getView())),
+                        () -> layout.setContent(new FabricationView(layout, layout.getAppController().getOrderController()).getView())),
                 actionCard("⌕", "Vérifier", "Vérifiez l'authenticité d'un\nnuméro de série",
-                        () -> layout.setContent(new VerificationView(layout).getView()))
+                        () -> layout.setContent(new VerificationView(layout, layout.getAppController().getSerialController()).getView()))
         );
 
         whiteSection.getChildren().addAll(why, sub, cards, actions);

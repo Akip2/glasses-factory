@@ -1,15 +1,23 @@
 package fr.smartglasses.frontend.view;
 
+import fr.smartglasses.frontend.controller.SerialController;
+import fr.smartglasses.frontend.model.Order;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 public class VerificationView {
 
     private final BorderPane view = new BorderPane();
 
-    public VerificationView(Layout layout) {
+    public VerificationView(Layout layout, SerialController serialController) {
         view.setStyle("-fx-background-color: #f1f6ff;");
 
         VBox page = new VBox();
@@ -19,10 +27,10 @@ public class VerificationView {
         header.setPadding(new Insets(40, 0, 45, 300));
         header.setStyle("-fx-background-color: #1e5bff;");
 
-        Label title = new Label("Vérification de numéro de série");
+        Label title = new Label("Verification de numero de serie");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;");
 
-        Label subtitle = new Label("Vérifiez l'authenticité de vos lunettes connectées");
+        Label subtitle = new Label("Verifiez l'authenticite de vos lunettes connectees");
         subtitle.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
 
         header.getChildren().addAll(title, subtitle);
@@ -49,7 +57,7 @@ public class VerificationView {
         Label searchTitle = new Label("Recherche");
         searchTitle.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
 
-        Label searchSubtitle = new Label("Entrez le numéro de série complet pour vérifier son authenticité");
+        Label searchSubtitle = new Label("Entrez le numero de serie complet pour verifier son authenticite");
         searchSubtitle.setStyle("-fx-text-fill: white; -fx-font-size: 15px;");
 
         searchHeader.getChildren().addAll(searchTitle, searchSubtitle);
@@ -57,14 +65,14 @@ public class VerificationView {
         VBox form = new VBox(12);
         form.setPadding(new Insets(45, 25, 25, 25));
 
-        Label fieldLabel = new Label("Numéro de série");
+        Label fieldLabel = new Label("Numero de serie");
         fieldLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #020617;");
 
         HBox inputLine = new HBox(12);
         inputLine.setAlignment(Pos.CENTER_LEFT);
 
         TextField serialInput = new TextField();
-        serialInput.setPromptText("Ex :  SN-PRO-001234");
+        serialInput.setPromptText("Ex : SN-PRO-001234");
         serialInput.setPrefHeight(58);
         serialInput.setStyle("""
             -fx-background-color: #f3f4f6;
@@ -75,7 +83,7 @@ public class VerificationView {
         """);
         HBox.setHgrow(serialInput, Priority.ALWAYS);
 
-        Button verifyBtn = new Button("⌕  Vérifier");
+        Button verifyBtn = new Button("Verifier");
         verifyBtn.setPrefSize(110, 42);
         verifyBtn.setStyle("""
             -fx-background-color: #8bb6ff;
@@ -91,11 +99,11 @@ public class VerificationView {
         verifyBtn.setOnAction(e -> {
             String value = serialInput.getText().trim();
 
-            if (value.startsWith("SN-")) {
-                result.setText("✓ Numéro valide : lunettes authentiques");
+            if (serialController.isValid(value)) {
+                result.setText("Numero valide : lunettes authentiques");
                 result.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 15px; -fx-font-weight: bold;");
             } else {
-                result.setText("✕ Numéro invalide ou introuvable");
+                result.setText("Numero invalide ou introuvable");
                 result.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold;");
             }
         });
@@ -116,10 +124,10 @@ public class VerificationView {
         examplesHeader.setPadding(new Insets(25));
         examplesHeader.setStyle("-fx-background-color: #f8fafc;");
 
-        Label examplesTitle = new Label("Exemples de numéros valides");
+        Label examplesTitle = new Label("Numero disponible");
         examplesTitle.setStyle("-fx-font-size: 20px; -fx-text-fill: #020617;");
 
-        Label examplesSubtitle = new Label("Utilisez l'un de ces numéros pour tester la vérification");
+        Label examplesSubtitle = new Label("Le numero apparait ici apres la fabrication d'une commande");
         examplesSubtitle.setStyle("-fx-font-size: 15px; -fx-text-fill: #64748b;");
 
         examplesHeader.getChildren().addAll(examplesTitle, examplesSubtitle);
@@ -129,10 +137,12 @@ public class VerificationView {
         examplesGrid.setHgap(12);
         examplesGrid.setVgap(12);
 
-        examplesGrid.add(exampleBox("✣  SN-PRO-001234"), 0, 0);
-        examplesGrid.add(exampleBox("✣  SN-PRO-001235"), 1, 0);
-        examplesGrid.add(exampleBox("✣  SN-LIT-002341"), 0, 1);
-        examplesGrid.add(exampleBox("✣  SN-SPO-003456"), 1, 1);
+        Order order = layout.getAppController().getOrderController().getCurrentOrder();
+        if (order != null && order.isCompleted()) {
+            examplesGrid.add(exampleBox(order.getSerialNumbers().getFirst().value()), 0, 0);
+        } else {
+            examplesGrid.add(exampleBox("Aucun numero genere pour le moment"), 0, 0);
+        }
 
         examplesCard.getChildren().addAll(examplesHeader, examplesGrid);
 

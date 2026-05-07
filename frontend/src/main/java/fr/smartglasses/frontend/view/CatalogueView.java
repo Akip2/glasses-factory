@@ -1,5 +1,7 @@
 package fr.smartglasses.frontend.view;
 
+import fr.smartglasses.frontend.controller.OrderController;
+import fr.smartglasses.frontend.model.GlassesModel;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -7,13 +9,16 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 
 public class CatalogueView {
 
     private final ScrollPane view;
 
-    public CatalogueView(Layout layout) {
+    public CatalogueView(Layout layout, OrderController orderController) {
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
 
@@ -25,7 +30,7 @@ public class CatalogueView {
         Label title = new Label("Catalogue de lunettes");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 42px; -fx-font-weight: bold;");
 
-        Label subtitle = new Label("Choisissez parmi nos modèles de lunettes connectées");
+        Label subtitle = new Label("Choisissez parmi nos modeles de lunettes connectees");
         subtitle.setStyle("-fx-text-fill: #dbeafe; -fx-font-size: 24px;");
 
         header.getChildren().addAll(title, subtitle);
@@ -34,24 +39,9 @@ public class CatalogueView {
         cards.setAlignment(Pos.CENTER);
         cards.setPadding(new Insets(60, 50, 60, 50));
 
-        cards.getChildren().addAll(
-                productCard(
-                        "SmartGlass Pro",
-                        "Le modèle haut de gamme avec toutes les fonctionnalités",
-                        "899€",
-                        "/images/pro.png",
-                        new String[]{"GPS intégré", "Caméra 4K", "Bluetooth 5.0", "Batterie longue durée"},
-                        layout
-                ),
-                productCard(
-                        "SmartGlass Sport",
-                        "Conçu pour les sportifs et les aventuriers",
-                        "699€",
-                        "/images/sport.png",
-                        new String[]{"Résistant à l’eau", "Capteurs biométriques", "Mode sport", "Design léger"},
-                        layout
-                )
-        );
+        for (GlassesModel model : orderController.getCatalogue()) {
+            cards.getChildren().add(productCard(model, layout, orderController));
+        }
 
         page.getChildren().addAll(header, cards);
 
@@ -61,12 +51,9 @@ public class CatalogueView {
     }
 
     private VBox productCard(
-            String name,
-            String description,
-            String price,
-            String imagePath,
-            String[] features,
-            Layout layout
+            GlassesModel model,
+            Layout layout,
+            OrderController orderController
     ) {
         VBox card = new VBox();
         card.setPrefWidth(520);
@@ -83,7 +70,7 @@ public class CatalogueView {
             -fx-background-radius: 15 15 0 0;
         """);
 
-        ImageView image = new ImageView(new Image(getClass().getResource(imagePath).toExternalForm()));
+        ImageView image = new ImageView(new Image(getClass().getResource(model.imagePath()).toExternalForm()));
         image.setFitWidth(470);
         image.setFitHeight(180);
         image.setPreserveRatio(false);
@@ -96,13 +83,13 @@ public class CatalogueView {
         HBox titleRow = new HBox();
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label(name);
+        Label title = new Label(model.name());
         title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #020617;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label priceLabel = new Label(price);
+        Label priceLabel = new Label(model.price());
         priceLabel.setStyle("""
             -fx-background-color: #1e5bff;
             -fx-text-fill: white;
@@ -113,12 +100,12 @@ public class CatalogueView {
 
         titleRow.getChildren().addAll(title, spacer, priceLabel);
 
-        Label desc = new Label(description);
+        Label desc = new Label(model.description());
         desc.setStyle("-fx-font-size: 17px; -fx-text-fill: #475569;");
 
         VBox featureList = new VBox(10);
-        for (String f : features) {
-            Label item = new Label("✓  " + f);
+        for (String feature : model.features()) {
+            Label item = new Label("-  " + feature);
             item.setStyle("-fx-font-size: 16px; -fx-text-fill: #1f2937;");
             featureList.getChildren().add(item);
         }
@@ -127,7 +114,7 @@ public class CatalogueView {
         line.setPrefHeight(1);
         line.setStyle("-fx-background-color: #e5e7eb;");
 
-        Button addBtn = new Button("🛒  Ajouter au panier");
+        Button addBtn = new Button("Ajouter au panier");
         addBtn.setPrefHeight(45);
         addBtn.setStyle("""
             -fx-background-color: #1e5bff;
@@ -137,7 +124,10 @@ public class CatalogueView {
             -fx-background-radius: 8;
             -fx-cursor: hand;
         """);
-        addBtn.setOnAction(e -> layout.setContent(new FabricationView(layout).getView()));
+        addBtn.setOnAction(e -> {
+            orderController.createOrder(model);
+            layout.setContent(new FabricationView(layout, orderController).getView());
+        });
 
         body.getChildren().addAll(titleRow, desc, featureList, line, addBtn);
 

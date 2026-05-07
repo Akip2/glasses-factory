@@ -1,11 +1,21 @@
 package fr.smartglasses.frontend.view;
 
+import fr.smartglasses.frontend.controller.OrderController;
+import fr.smartglasses.frontend.model.Order;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
 public class FabricationView {
@@ -13,8 +23,10 @@ public class FabricationView {
     private final BorderPane view = new BorderPane();
     private final ProgressBar progressBar = new ProgressBar(0);
     private final Label percentLabel = new Label("0%");
+    private final OrderController orderController;
 
-    public FabricationView(Layout layout) {
+    public FabricationView(Layout layout, OrderController orderController) {
+        this.orderController = orderController;
         showInProgress(layout);
     }
 
@@ -31,7 +43,7 @@ public class FabricationView {
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 28, 0, 0, 10);
         """);
 
-        Label icon = new Label("▣");
+        Label icon = new Label("...");
         icon.setAlignment(Pos.CENTER);
         icon.setPrefSize(120, 120);
         icon.setStyle("""
@@ -41,7 +53,7 @@ public class FabricationView {
             -fx-border-radius: 100;
             -fx-background-radius: 100;
             -fx-text-fill: #1e5bff;
-            -fx-font-size: 52px;
+            -fx-font-size: 34px;
             -fx-font-weight: bold;
         """);
 
@@ -70,11 +82,10 @@ public class FabricationView {
 
         HBox steps = new HBox(20);
         steps.setAlignment(Pos.CENTER);
-
         steps.getChildren().addAll(
-                stepBox("◷", "Préparation", true),
-                stepBox("▣", "Assemblage", false),
-                stepBox("✓", "Finalisation", false)
+                stepBox("1", "Preparation", true),
+                stepBox("2", "Assemblage", false),
+                stepBox("3", "Finalisation", false)
         );
 
         card.getChildren().addAll(icon, title, subtitle, progressHeader, progressBar, steps);
@@ -83,7 +94,6 @@ public class FabricationView {
         center.setPadding(new Insets(90, 60, 60, 60));
 
         view.setCenter(center);
-
         startProgress(layout);
     }
 
@@ -91,7 +101,6 @@ public class FabricationView {
         VBox box = new VBox(10);
         box.setAlignment(Pos.CENTER);
         box.setPrefSize(205, 85);
-
         box.setStyle(active
                 ? "-fx-background-color: #eff6ff; -fx-background-radius: 10;"
                 : "-fx-background-color: #f8fafc; -fx-background-radius: 10;"
@@ -117,6 +126,7 @@ public class FabricationView {
             percentLabel.setText((int) (value * 100) + "%");
 
             if (value >= 1.0) {
+                timeline.stop();
                 showFinished(layout);
             }
         });
@@ -129,6 +139,13 @@ public class FabricationView {
         view.getChildren().clear();
         view.setStyle("-fx-background-color: #f1f6ff;");
 
+        Order order = orderController.completeCurrentOrder();
+        String orderId = order == null ? "CMD-00000000" : order.getId();
+        String modelName = order == null ? "Aucune commande" : order.getModel().name();
+        String serialNumber = order == null || order.getSerialNumbers().isEmpty()
+                ? "Aucun numero"
+                : order.getSerialNumbers().getFirst().value();
+
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
 
@@ -137,21 +154,21 @@ public class FabricationView {
         header.setPadding(new Insets(35, 0, 35, 310));
         header.setStyle("-fx-background-color: #1e5bff;");
 
-        Label check = new Label("✓");
+        Label check = new Label("OK");
         check.setAlignment(Pos.CENTER);
         check.setPrefSize(45, 45);
         check.setStyle("""
             -fx-background-color: white;
             -fx-text-fill: #1e5bff;
-            -fx-font-size: 28px;
+            -fx-font-size: 18px;
             -fx-font-weight: bold;
             -fx-background-radius: 50;
         """);
 
         VBox headerText = new VBox(2);
-        Label title = new Label("Fabrication terminée !");
+        Label title = new Label("Fabrication terminee !");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;");
-        Label subtitle = new Label("Vos numéros de série sont prêts");
+        Label subtitle = new Label("Vos numeros de serie sont prets");
         subtitle.setStyle("-fx-text-fill: white; -fx-font-size: 17px;");
         headerText.getChildren().addAll(title, subtitle);
         header.getChildren().addAll(check, headerText);
@@ -170,9 +187,9 @@ public class FabricationView {
         tableTop.setStyle("-fx-background-color: #2f7cff; -fx-background-radius: 10 10 0 0;");
 
         VBox left = new VBox(8);
-        Label tableTitle = new Label("Numéros de série générés");
+        Label tableTitle = new Label("Numeros de serie generes");
         tableTitle.setStyle("-fx-text-fill: white; -fx-font-size: 23px; -fx-font-weight: bold;");
-        Label count = new Label("6 lunettes fabriquées");
+        Label count = new Label(order == null ? "Aucune lunette fabriquee" : "1 lunette fabriquee");
         count.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
         left.getChildren().addAll(tableTitle, count);
 
@@ -184,7 +201,7 @@ public class FabricationView {
         cmd.setStyle("-fx-background-color: rgba(255,255,255,0.18); -fx-background-radius: 8;");
         Label cmdSmall = new Label("Commande");
         cmdSmall.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
-        Label cmdId = new Label("CMD-42961499");
+        Label cmdId = new Label(orderId);
         cmdId.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
         cmd.getChildren().addAll(cmdSmall, cmdId);
 
@@ -195,30 +212,27 @@ public class FabricationView {
         table.setVgap(12);
         table.setHgap(60);
 
-        addRow(table, 0, "#", "Numéro de série", "Modèle", "Statut", true);
-        addRow(table, 1, "1", "✣  SN-SPO-721818", "SmartGlass Sport", "✓  Généré", false);
-        addRow(table, 2, "2", "✣  SN-SPO-592808", "SmartGlass Sport", "✓  Généré", false);
-        addRow(table, 3, "3", "✣  SN-LIT-615699", "SmartGlass Lite", "✓  Généré", false);
-        addRow(table, 4, "4", "✣  SN-LIT-898745", "SmartGlass Lite", "✓  Généré", false);
-        addRow(table, 5, "5", "✣  SN-SPO-358418", "SmartGlass Sport", "✓  Généré", false);
-        addRow(table, 6, "6", "✣  SN-PRO-864669", "SmartGlass Pro", "✓  Généré", false);
+        addRow(table, 0, "#", "Numero de serie", "Modele", "Statut", true);
+        if (order != null) {
+            addRow(table, 1, "1", serialNumber, modelName, "Genere", false);
+        }
 
         HBox bottom = new HBox(15);
         bottom.setAlignment(Pos.CENTER_LEFT);
         bottom.setPadding(new Insets(20, 25, 20, 25));
         bottom.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 0 0 10 10;");
 
-        Label note = new Label("Vous pouvez vérifier chaque numéro de série dans l'onglet \"Vérifier\"");
+        Label note = new Label("Vous pouvez verifier chaque numero de serie dans l'onglet Verifier");
         note.setStyle("-fx-text-fill: #334155; -fx-font-size: 13px;");
 
         Region bottomSpacer = new Region();
         HBox.setHgrow(bottomSpacer, Priority.ALWAYS);
 
         Button newOrder = new Button("Nouvelle commande");
-        Button verify = new Button("Vérifier un numéro");
+        Button verify = new Button("Verifier un numero");
 
-        newOrder.setOnAction(e -> layout.setContent(new CatalogueView(layout).getView()));
-        verify.setOnAction(e -> layout.setContent(new VerificationView(layout).getView()));
+        newOrder.setOnAction(e -> layout.setContent(new CatalogueView(layout, orderController).getView()));
+        verify.setOnAction(e -> layout.setContent(new VerificationView(layout, layout.getAppController().getSerialController()).getView()));
 
         bottom.getChildren().addAll(note, bottomSpacer, newOrder, verify);
         tableCard.getChildren().addAll(tableTop, table, bottom);
@@ -227,9 +241,9 @@ public class FabricationView {
         info.setMaxWidth(910);
         info.setPadding(new Insets(20));
         info.setStyle("-fx-background-color: #1e5bff; -fx-background-radius: 10;");
-        Label infoTitle = new Label("✦  À propos des numéros de série");
+        Label infoTitle = new Label("A propos des numeros de serie");
         infoTitle.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-        Label infoText = new Label("Chaque paire de lunettes possède un numéro de série unique qui garantit son authenticité et permet de tracer son origine.");
+        Label infoText = new Label("Chaque paire de lunettes possede un numero de serie unique qui garantit son authenticite et permet de tracer son origine.");
         infoText.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
         info.getChildren().addAll(infoTitle, infoText);
 
@@ -247,8 +261,8 @@ public class FabricationView {
         Label l3 = cell(c3, header);
         Label l4 = cell(c4, header);
 
-        if (!header && c2.contains("SN-")) l2.setStyle("-fx-text-fill: #1e5bff; -fx-font-weight: bold;");
-        if (!header && c4.contains("Généré")) {
+        if (!header) {
+            l2.setStyle("-fx-text-fill: #1e5bff; -fx-font-weight: bold;");
             l4.setStyle("-fx-background-color: #16a34a; -fx-text-fill: white; -fx-padding: 4 10; -fx-background-radius: 6;");
         }
 

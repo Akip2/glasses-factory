@@ -1,5 +1,6 @@
 package fr.smartglasses.frontend.view;
 
+import fr.smartglasses.frontend.controller.AppController;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -10,8 +11,10 @@ import javafx.scene.layout.VBox;
 public class Layout {
 
     private final BorderPane root = new BorderPane();
+    private final AppController appController;
 
-    public Layout() {
+    public Layout(AppController appController) {
+        this.appController = appController;
         root.setLeft(createSidebar());
         setContent(new HomeView(this).getView());
     }
@@ -34,9 +37,9 @@ public class Layout {
         Button verifier = menuButton("⌕  Vérifier");
 
         accueil.setOnAction(e -> setContent(new HomeView(this).getView()));
-        catalogue.setOnAction(e -> setContent(new CatalogueView(this).getView()));
-        fabrication.setOnAction(e -> setContent(new FabricationView(this).getView()));
-        verifier.setOnAction(e -> setContent(new VerificationView(this).getView()));
+        catalogue.setOnAction(e -> setContent(new CatalogueView(this, appController.getOrderController()).getView()));
+        fabrication.setOnAction(e -> setContent(new FabricationView(this, appController.getOrderController()).getView()));
+        verifier.setOnAction(e -> setContent(new VerificationView(this, appController.getSerialController()).getView()));
 
         sidebar.getChildren().addAll(title, subtitle, accueil, catalogue, fabrication, verifier);
         return sidebar;
@@ -80,5 +83,9 @@ public class Layout {
 
     public BorderPane getRoot() {
         return root;
+    }
+
+    public AppController getAppController() {
+        return appController;
     }
 }

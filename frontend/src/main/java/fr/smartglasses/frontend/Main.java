@@ -1,5 +1,6 @@
 package fr.smartglasses.frontend;
 
+import fr.smartglasses.frontend.controller.AppController;
 import fr.smartglasses.frontend.view.Layout;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -9,7 +10,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        Layout layout = new Layout();
+        Layout layout = new Layout(new AppController());
 
         Scene scene = new Scene(layout.getRoot(), 1200, 800);
 
