@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Spinner;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
@@ -114,6 +115,16 @@ public class CatalogueView {
         line.setPrefHeight(1);
         line.setStyle("-fx-background-color: #e5e7eb;");
 
+        Label quantityLabel = new Label("Quantite");
+        quantityLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #020617;");
+
+        Spinner<Integer> quantitySpinner = new Spinner<>(1, 10, 1);
+        quantitySpinner.setEditable(true);
+        quantitySpinner.setPrefWidth(90);
+
+        HBox orderLine = new HBox(12);
+        orderLine.setAlignment(Pos.CENTER_LEFT);
+
         Button addBtn = new Button("Ajouter au panier");
         addBtn.setPrefHeight(45);
         addBtn.setStyle("""
@@ -125,11 +136,12 @@ public class CatalogueView {
             -fx-cursor: hand;
         """);
         addBtn.setOnAction(e -> {
-            orderController.createOrder(model);
+            orderController.createOrder(model, quantitySpinner.getValue());
             layout.setContent(new FabricationView(layout, orderController).getView());
         });
 
-        body.getChildren().addAll(titleRow, desc, featureList, line, addBtn);
+        orderLine.getChildren().addAll(quantityLabel, quantitySpinner, addBtn);
+        body.getChildren().addAll(titleRow, desc, featureList, line, orderLine);
 
         card.getChildren().addAll(imageArea, body);
         return card;

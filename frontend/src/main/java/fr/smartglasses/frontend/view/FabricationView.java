@@ -2,6 +2,7 @@ package fr.smartglasses.frontend.view;
 
 import fr.smartglasses.frontend.controller.OrderController;
 import fr.smartglasses.frontend.model.Order;
+import fr.smartglasses.frontend.model.SerialNumber;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.geometry.Insets;
@@ -142,9 +143,7 @@ public class FabricationView {
         Order order = orderController.completeCurrentOrder();
         String orderId = order == null ? "CMD-00000000" : order.getId();
         String modelName = order == null ? "Aucune commande" : order.getModel().name();
-        String serialNumber = order == null || order.getSerialNumbers().isEmpty()
-                ? "Aucun numero"
-                : order.getSerialNumbers().getFirst().value();
+        int quantity = order == null ? 0 : order.getQuantity();
 
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
@@ -189,7 +188,7 @@ public class FabricationView {
         VBox left = new VBox(8);
         Label tableTitle = new Label("Numeros de serie generes");
         tableTitle.setStyle("-fx-text-fill: white; -fx-font-size: 23px; -fx-font-weight: bold;");
-        Label count = new Label(order == null ? "Aucune lunette fabriquee" : "1 lunette fabriquee");
+        Label count = new Label(order == null ? "Aucune lunette fabriquee" : quantity + " lunette(s) fabriquee(s)");
         count.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
         left.getChildren().addAll(tableTitle, count);
 
@@ -214,7 +213,11 @@ public class FabricationView {
 
         addRow(table, 0, "#", "Numero de serie", "Modele", "Statut", true);
         if (order != null) {
-            addRow(table, 1, "1", serialNumber, modelName, "Genere", false);
+            int row = 1;
+            for (SerialNumber serialNumber : order.getSerialNumbers()) {
+                addRow(table, row, String.valueOf(row), serialNumber.value(), modelName, "Genere", false);
+                row++;
+            }
         }
 
         HBox bottom = new HBox(15);

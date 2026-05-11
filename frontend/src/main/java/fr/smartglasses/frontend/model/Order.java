@@ -8,12 +8,14 @@ public class Order {
 
     private final String id;
     private final GlassesModel model;
+    private final int quantity;
     private final List<SerialNumber> serialNumbers = new ArrayList<>();
     private OrderStatus status = OrderStatus.CREATED;
 
-    public Order(String id, GlassesModel model) {
+    public Order(String id, GlassesModel model, int quantity) {
         this.id = id;
         this.model = model;
+        this.quantity = quantity;
     }
 
     public String getId() {
@@ -22,6 +24,10 @@ public class Order {
 
     public GlassesModel getModel() {
         return model;
+    }
+
+    public int getQuantity() {
+        return quantity;
     }
 
     public List<SerialNumber> getSerialNumbers() {

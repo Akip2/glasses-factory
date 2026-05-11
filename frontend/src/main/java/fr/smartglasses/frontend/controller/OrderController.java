@@ -35,9 +35,9 @@ public class OrderController {
         return catalogue;
     }
 
-    public Order createOrder(GlassesModel model) {
+    public Order createOrder(GlassesModel model, int quantity) {
         String id = "CMD-" + (10000000 + random.nextInt(90000000));
-        currentOrder = new Order(id, model);
+        currentOrder = new Order(id, model, quantity);
         currentOrder.startFabrication();
         return currentOrder;
     }
@@ -52,7 +52,9 @@ public class OrderController {
         }
 
         if (!currentOrder.isCompleted()) {
-            currentOrder.addSerialNumber(new SerialNumber(generateSerialNumber(currentOrder.getModel())));
+            for (int index = 0; index < currentOrder.getQuantity(); index++) {
+                currentOrder.addSerialNumber(new SerialNumber(generateSerialNumber(currentOrder.getModel())));
+            }
             currentOrder.complete();
         }
 
