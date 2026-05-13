@@ -6,6 +6,6 @@ public record GlassesModel(
         String description,
         String price,
         String imagePath,
-        String[] features
+        String badge
 ) {
 }

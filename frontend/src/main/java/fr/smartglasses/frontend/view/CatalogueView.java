@@ -13,6 +13,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 
 public class CatalogueView {
@@ -36,8 +37,11 @@ public class CatalogueView {
 
         header.getChildren().addAll(title, subtitle);
 
-        HBox cards = new HBox(40);
+        TilePane cards = new TilePane();
         cards.setAlignment(Pos.CENTER);
+        cards.setHgap(40);
+        cards.setVgap(40);
+        cards.setPrefColumns(2);
         cards.setPadding(new Insets(60, 50, 60, 50));
 
         for (GlassesModel model : orderController.getCatalogue()) {
@@ -57,7 +61,7 @@ public class CatalogueView {
             OrderController orderController
     ) {
         VBox card = new VBox();
-        card.setPrefWidth(520);
+        card.setPrefWidth(430);
         card.setStyle("""
             -fx-background-color: white;
             -fx-background-radius: 15;
@@ -72,7 +76,7 @@ public class CatalogueView {
         """);
 
         ImageView image = new ImageView(new Image(getClass().getResource(model.imagePath()).toExternalForm()));
-        image.setFitWidth(470);
+        image.setFitWidth(380);
         image.setFitHeight(180);
         image.setPreserveRatio(false);
 
@@ -99,17 +103,22 @@ public class CatalogueView {
             -fx-background-radius: 8;
         """);
 
-        titleRow.getChildren().addAll(title, spacer, priceLabel);
+        titleRow.getChildren().addAll(title, spacer);
+        if (!model.badge().isBlank()) {
+            Label badge = new Label(model.badge());
+            badge.setStyle("""
+                -fx-background-color: #eff6ff;
+                -fx-text-fill: #1e5bff;
+                -fx-font-size: 14px;
+                -fx-padding: 8 12;
+                -fx-background-radius: 8;
+            """);
+            titleRow.getChildren().add(badge);
+        }
+        titleRow.getChildren().add(priceLabel);
 
         Label desc = new Label(model.description());
         desc.setStyle("-fx-font-size: 17px; -fx-text-fill: #475569;");
-
-        VBox featureList = new VBox(10);
-        for (String feature : model.features()) {
-            Label item = new Label("-  " + feature);
-            item.setStyle("-fx-font-size: 16px; -fx-text-fill: #1f2937;");
-            featureList.getChildren().add(item);
-        }
 
         Region line = new Region();
         line.setPrefHeight(1);
@@ -141,7 +150,7 @@ public class CatalogueView {
         });
 
         orderLine.getChildren().addAll(quantityLabel, quantitySpinner, addBtn);
-        body.getChildren().addAll(titleRow, desc, featureList, line, orderLine);
+        body.getChildren().addAll(titleRow, desc, line, orderLine);
 
         card.getChildren().addAll(imageArea, body);
         return card;

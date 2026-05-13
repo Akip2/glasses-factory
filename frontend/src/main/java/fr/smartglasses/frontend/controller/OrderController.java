@@ -14,20 +14,36 @@ public class OrderController {
 
     private final List<GlassesModel> catalogue = List.of(
             new GlassesModel(
-                    "PRO",
-                    "SmartGlass Pro",
-                    "Le modele haut de gamme avec toutes les fonctionnalites",
-                    "899 EUR",
-                    "/images/pro.png",
-                    new String[]{"GPS integre", "Camera 4K", "Bluetooth 5.0", "Batterie longue duree"}
+                    "BANANA",
+                    "Bananaaaa",
+                    "Design iconique des annees 50, parfait pour un look vintage et decontracte.",
+                    "89.99 EUR",
+                    "/images/banana.png",
+                    "Nouveau"
             ),
             new GlassesModel(
-                    "SPO",
-                    "SmartGlass Sport",
-                    "Concu pour les sportifs et les aventuriers",
-                    "699 EUR",
-                    "/images/sport.png",
-                    new String[]{"Resistant a l'eau", "Capteurs biometriques", "Mode sport", "Design leger"}
+                    "CHATGPT",
+                    "BlaBlaBla",
+                    "Lunettes style aviateur avec verres polarises et monture en metal dore.",
+                    "74.99 EUR",
+                    "/images/chatgpt.png",
+                    ""
+            ),
+            new GlassesModel(
+                    "LECHAT",
+                    "Miaousse",
+                    "Lunettes de vue sophistiquees avec monture fine et design contemporain.",
+                    "129.99 EUR",
+                    "/images/le_chat.png",
+                    "-10%"
+            ),
+            new GlassesModel(
+                    "CLAUDE",
+                    "Claude",
+                    "Monture ultra-legere et resistante, ideale pour les activites sportives.",
+                    "99.99 EUR",
+                    "/images/claude.png",
+                    "Bestseller"
             )
     );
 
