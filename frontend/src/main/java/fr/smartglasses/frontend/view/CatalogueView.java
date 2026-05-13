@@ -39,10 +39,11 @@ public class CatalogueView {
 
         TilePane cards = new TilePane();
         cards.setAlignment(Pos.CENTER);
-        cards.setHgap(40);
-        cards.setVgap(40);
+        cards.setHgap(28);
+        cards.setVgap(32);
         cards.setPrefColumns(2);
-        cards.setPadding(new Insets(60, 50, 60, 50));
+        cards.setPrefTileWidth(390);
+        cards.setPadding(new Insets(45, 40, 50, 40));
 
         for (GlassesModel model : orderController.getCatalogue()) {
             cards.getChildren().add(productCard(model, layout, orderController));
@@ -61,7 +62,8 @@ public class CatalogueView {
             OrderController orderController
     ) {
         VBox card = new VBox();
-        card.setPrefWidth(430);
+        card.setPrefWidth(390);
+        card.setMaxWidth(390);
         card.setStyle("""
             -fx-background-color: white;
             -fx-background-radius: 15;
@@ -76,7 +78,7 @@ public class CatalogueView {
         """);
 
         ImageView image = new ImageView(new Image(getClass().getResource(model.imagePath()).toExternalForm()));
-        image.setFitWidth(380);
+        image.setFitWidth(340);
         image.setFitHeight(180);
         image.setPreserveRatio(false);
 
@@ -118,6 +120,7 @@ public class CatalogueView {
         titleRow.getChildren().add(priceLabel);
 
         Label desc = new Label(model.description());
+        desc.setWrapText(true);
         desc.setStyle("-fx-font-size: 17px; -fx-text-fill: #475569;");
 
         Region line = new Region();

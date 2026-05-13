@@ -51,11 +51,13 @@ public class HomeView {
         Button catalogueBtn = new Button("Voir le\ncatalogue");
         catalogueBtn.setPrefSize(215, 100);
         catalogueBtn.setStyle("""
-            -fx-background-color: white;
-            -fx-text-fill: #1e5bff;
+            -fx-background-color: transparent;
+            -fx-border-color: rgba(255,255,255,0.45);
+            -fx-text-fill: white;
             -fx-font-size: 18px;
             -fx-font-weight: bold;
             -fx-background-radius: 12;
+            -fx-border-radius: 12;
         """);
         catalogueBtn.setOnAction(e -> layout.setContent(new CatalogueView(layout, layout.getAppController().getOrderController()).getView()));
 
