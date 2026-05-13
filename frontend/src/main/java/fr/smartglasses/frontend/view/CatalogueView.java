@@ -39,11 +39,11 @@ public class CatalogueView {
 
         TilePane cards = new TilePane();
         cards.setAlignment(Pos.CENTER);
-        cards.setHgap(28);
-        cards.setVgap(32);
+        cards.setHgap(24);
+        cards.setVgap(34);
         cards.setPrefColumns(2);
-        cards.setPrefTileWidth(390);
-        cards.setPadding(new Insets(45, 40, 50, 40));
+        cards.setPrefTileWidth(430);
+        cards.setPadding(new Insets(45, 30, 55, 30));
 
         for (GlassesModel model : orderController.getCatalogue()) {
             cards.getChildren().add(productCard(model, layout, orderController));
@@ -62,8 +62,9 @@ public class CatalogueView {
             OrderController orderController
     ) {
         VBox card = new VBox();
-        card.setPrefWidth(390);
-        card.setMaxWidth(390);
+        card.setPrefWidth(430);
+        card.setMaxWidth(430);
+        card.setMinHeight(485);
         card.setStyle("""
             -fx-background-color: white;
             -fx-background-radius: 15;
@@ -78,14 +79,14 @@ public class CatalogueView {
         """);
 
         ImageView image = new ImageView(new Image(getClass().getResource(model.imagePath()).toExternalForm()));
-        image.setFitWidth(340);
-        image.setFitHeight(180);
+        image.setFitWidth(380);
+        image.setFitHeight(215);
         image.setPreserveRatio(false);
 
         imageArea.getChildren().add(image);
 
         VBox body = new VBox(15);
-        body.setPadding(new Insets(45, 30, 30, 30));
+        body.setPadding(new Insets(34, 28, 30, 28));
 
         HBox titleRow = new HBox();
         titleRow.setAlignment(Pos.CENTER_LEFT);
@@ -120,6 +121,7 @@ public class CatalogueView {
         titleRow.getChildren().add(priceLabel);
 
         Label desc = new Label(model.description());
+        desc.setMinHeight(58);
         desc.setWrapText(true);
         desc.setStyle("-fx-font-size: 17px; -fx-text-fill: #475569;");
 
@@ -138,6 +140,8 @@ public class CatalogueView {
         orderLine.setAlignment(Pos.CENTER_LEFT);
 
         Button addBtn = new Button("Ajouter au panier");
+        HBox.setHgrow(addBtn, Priority.ALWAYS);
+        addBtn.setMaxWidth(Double.MAX_VALUE);
         addBtn.setPrefHeight(45);
         addBtn.setStyle("""
             -fx-background-color: #1e5bff;
