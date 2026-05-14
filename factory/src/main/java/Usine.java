@@ -10,6 +10,10 @@ import java.util.Map;
 public class Usine {
     private final Fabricateur fabricateur;
 
+    public Usine(int capacity) {
+        this.fabricateur = new Fabricateur(capacity);
+    }
+
     public Usine() {
         this.fabricateur = new Fabricateur();
     }
