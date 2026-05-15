@@ -1,5 +1,4 @@
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.*;
 
 public class Serveur {
     private final Usine usine;
@@ -12,6 +11,8 @@ public class Serveur {
         MqttClient client = new MqttClient(url, clientId);
 
         client.connect();
+
+        client.setCallback(new MessageManager(this.usine, client));
 
         client.subscribe("orders/+");
     }
