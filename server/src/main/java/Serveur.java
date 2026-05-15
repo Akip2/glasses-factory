@@ -15,5 +15,6 @@ public class Serveur {
         client.setCallback(new MessageManager(this.usine, client));
 
         client.subscribe("orders/+");
+        client.subscribe("serials/+/check");
     }
 }
