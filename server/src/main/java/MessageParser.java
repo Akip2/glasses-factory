@@ -10,7 +10,7 @@ public class MessageParser {
         try {
             return Fabricateur.TypeLunette.valueOf(type);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Type de lunette inconnu : " + type);
+            throw new IllegalArgumentException(ErreurMessage.TYPE_INCONNU.getMessage());
         }
     }
 
@@ -27,14 +27,14 @@ public class MessageParser {
             String[] split = commande.split(":");
 
             if (split.length != 2) {
-                throw new IllegalArgumentException("Format de commande invalide");
+                throw new IllegalArgumentException(ErreurMessage.FORMAT_INVALIDE.getMessage());
             }
 
             Fabricateur.TypeLunette type = parseType(split[0]);
             int qte = Integer.parseInt(split[1]);
 
             if (!qteLegal(qte)) {
-                throw new IllegalArgumentException("Quantité invalide, doit être comprise entre 0 (inclu) et 10 (exclu)");
+                throw new IllegalArgumentException(ErreurMessage.QUANTITE_INVALIDE.getMessage());
             }
 
             totalQte += qte;
@@ -42,7 +42,7 @@ public class MessageParser {
         }
 
         if (totalQte == 0) {
-            throw new IllegalArgumentException("Quantité totale invalide, doit être strictement supérieure à 0");
+            throw new IllegalArgumentException(ErreurMessage.QUANTITE_TOTALE_INVALIDE.getMessage());
         }
 
         return res;
