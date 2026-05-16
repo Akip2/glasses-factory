@@ -15,6 +15,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 public class CatalogueView {
 
@@ -24,6 +25,33 @@ public class CatalogueView {
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
 
+        TilePane cards = new TilePane();
+        cards.setAlignment(Pos.CENTER);
+        cards.setHgap(40);
+        cards.setVgap(40);
+        cards.setPrefColumns(2);
+        cards.setPadding(new Insets(60, 50, 60, 50));
+
+        for (GlassesModel model : orderController.getCatalogue()) {
+            cards.getChildren().add(productCard(model, layout, orderController));
+        }
+
+        Text infosCommande = new Text(orderController.getInfosCommande());
+
+        // ajout de tous les éléments de la page au layout
+        page.getChildren().addAll(header(), cards, infosCommande, btnCommander(orderController));
+
+        view = new ScrollPane(page);
+        view.setFitToWidth(true);
+        view.setStyle("-fx-background: #f1f6ff;");
+    }
+
+    /*
+    * Header de la page catalogue, avec un titre et un sous-titre
+    *
+    * @return le header stylisé et correctement organisé, prêt à être affiché en haut de la page
+    * */
+    private VBox header() {
         VBox header = new VBox(15);
         header.setPadding(new Insets(0, 0, 55, 45));
         header.setPrefHeight(150);
@@ -37,24 +65,14 @@ public class CatalogueView {
 
         header.getChildren().addAll(title, subtitle);
 
-        TilePane cards = new TilePane();
-        cards.setAlignment(Pos.CENTER);
-        cards.setHgap(40);
-        cards.setVgap(40);
-        cards.setPrefColumns(2);
-        cards.setPadding(new Insets(60, 50, 60, 50));
-
-        for (GlassesModel model : orderController.getCatalogue()) {
-            cards.getChildren().add(productCard(model, layout, orderController));
-        }
-
-        page.getChildren().addAll(header, cards);
-
-        view = new ScrollPane(page);
-        view.setFitToWidth(true);
-        view.setStyle("-fx-background: #f1f6ff;");
+        return header;
     }
 
+    /*
+    * Carte d'affichage d'un modèle de lunettes dans le catalogue
+    *
+    * @return la carte stylisée et correctement organisée, prête à être affichée sur la page
+    * */
     private VBox productCard(
             GlassesModel model,
             Layout layout,
@@ -145,8 +163,7 @@ public class CatalogueView {
             -fx-cursor: hand;
         """);
         addBtn.setOnAction(e -> {
-            orderController.createOrder(model, quantitySpinner.getValue());
-            layout.setContent(new FabricationView(layout, orderController).getView());
+            orderController.addGlasses(model, quantitySpinner.getValue());
         });
 
         orderLine.getChildren().addAll(quantityLabel, quantitySpinner, addBtn);
@@ -154,6 +171,34 @@ public class CatalogueView {
 
         card.getChildren().addAll(imageArea, body);
         return card;
+    }
+
+    /*
+    * Bouton de validation de la commande, qui lance le processus de fabrication
+    *
+    * @return le bouton stylisé et correctement configuré, prêt à être affiché sur la page
+    * */
+    Button btnCommander(OrderController orderController) {
+        Button btnPasserCommande = new Button("Commander");
+        btnPasserCommande.setPrefHeight(45);
+        btnPasserCommande.setStyle("""
+            -fx-background-color: #1e5bff;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 0 22;
+            -fx-background-radius: 8;
+            -fx-cursor: hand;
+        """);
+        btnPasserCommande.setOnAction(e -> {
+            orderController.startFabrication();
+
+            // while (orderController.)
+
+            // TODO : à faire
+            // layout.setContent(new FabricationView(layout, orderController).getView());
+        });
+
+        return btnPasserCommande;
     }
 
     public ScrollPane getView() {

@@ -1,49 +1,84 @@
 package fr.smartglasses.frontend.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class Order {
 
     private final String id;
-    private final GlassesModel model;
-    private final int quantity;
-    private final List<SerialNumber> serialNumbers = new ArrayList<>();
+    private final Map<GlassesModel, Integer> glassesQuantity = new HashMap<>();
     private OrderStatus status = OrderStatus.CREATED;
 
-    public Order(String id, GlassesModel model, int quantity) {
+    /*
+    * Constructeur de commande
+    *
+    * @param id identifiant unique de la commande
+    * */
+    public Order(String id) {
         this.id = id;
-        this.model = model;
-        this.quantity = quantity;
+    }
+
+    /*
+    * Ajouter un nouveau modèle de lunettes à la commande avec une quantité donnée
+    * Ou remplace la quantité initialement enregistrée si le modèle existe déjà
+    *
+    * @param model moèle de la paire de lunettes
+    * @param quantity quantité de ce modèle
+    * */
+    public void addGlasses(GlassesModel model, int quantity) {
+        // gère automatiquement l'insertion et la modification
+        glassesQuantity.put(model, quantity);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Commande ").append(id).append(" :\n");
+
+        for (Map.Entry<GlassesModel, Integer> entry : glassesQuantity.entrySet()) {
+            sb.append("- ")
+                    .append(entry.getKey().code())
+                    .append(" | ")
+                    .append(entry.getKey().name())
+                    .append(" x")
+                    .append(entry.getValue())
+                    .append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public void resetOrder(){
+        glassesQuantity.clear();
+        status = OrderStatus.CREATED;
+    }
+
+    // Getters / Setters
+
+    public Map<GlassesModel, Integer> getOrder() {
+        return glassesQuantity;
     }
 
     public String getId() {
         return id;
     }
 
-    public GlassesModel getModel() {
-        return model;
+    public List<GlassesModel> getModel() {
+        return new ArrayList<>(glassesQuantity.keySet());
     }
 
-    public int getQuantity() {
-        return quantity;
+    public int getTotalQuantity() {
+        return glassesQuantity.values().stream().mapToInt(Integer::intValue).sum();
     }
 
-    public List<SerialNumber> getSerialNumbers() {
-        return Collections.unmodifiableList(serialNumbers);
-    }
-
-    public void addSerialNumber(SerialNumber serialNumber) {
-        serialNumbers.add(serialNumber);
-    }
+    // Statut de la commande
 
     public OrderStatus getStatus() {
         return status;
     }
 
-    public void startFabrication() {
-        status = OrderStatus.IN_PROGRESS;
+    public void setStatus(OrderStatus status) {
+        this.status = status;
     }
 
     public void complete() {

@@ -142,8 +142,11 @@ public class FabricationView {
 
         Order order = orderController.completeCurrentOrder();
         String orderId = order == null ? "CMD-00000000" : order.getId();
-        String modelName = order == null ? "Aucune commande" : order.getModel().name();
-        int quantity = order == null ? 0 : order.getQuantity();
+        String modelName = order == null ? "Aucune commande" : "order.getModel().name()";
+        int quantity = order == null ? 0 : 999;
+
+//        String modelName = order == null ? "Aucune commande" : order.getModel().name();
+//        int quantity = order == null ? 0 : order.getQuantity();
 
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
@@ -214,10 +217,10 @@ public class FabricationView {
         addRow(table, 0, "#", "Numero de serie", "Modele", "Statut", true);
         if (order != null) {
             int row = 1;
-            for (SerialNumber serialNumber : order.getSerialNumbers()) {
-                addRow(table, row, String.valueOf(row), serialNumber.value(), modelName, "Genere", false);
-                row++;
-            }
+//            for (SerialNumber serialNumber : order.getSerialNumbers()) {
+//                addRow(table, row, String.valueOf(row), serialNumber.value(), modelName, "Genere", false);
+//                row++;
+//            }
         }
 
         HBox bottom = new HBox(15);

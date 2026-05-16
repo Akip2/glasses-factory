@@ -10,9 +10,9 @@ public class SerialController {
         this.orderController = orderController;
     }
 
-    public boolean isValid(String serialNumber) {
-        Order order = orderController.getCurrentOrder();
-        return order != null && order.getSerialNumbers().stream()
-                .anyMatch(number -> number.value().equals(serialNumber));
-    }
+//    public boolean isValid(String serialNumber) {
+//        Order order = orderController.getCurrentOrder();
+//        return order != null && order.getSerialNumbers().stream()
+//                .anyMatch(number -> number.value().equals(serialNumber));
+//    }
 }
