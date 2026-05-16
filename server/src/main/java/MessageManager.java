@@ -8,13 +8,11 @@ public class MessageManager implements MqttCallback {
     private final Usine usine;
     private final MqttClient client;
     private final MessageParser parser;
-    private final StockLunettes stockLunettes;
 
     public MessageManager(Usine usine, MqttClient client) {
         this.usine = usine;
         this.client = client;
         this.parser = new MessageParser();
-        this.stockLunettes = new StockLunettes();
     }
 
     @Override
@@ -61,7 +59,14 @@ public class MessageManager implements MqttCallback {
     private void serialCheckEndpoint(String topic) {
         String numeroSerie = topic.split("/")[1];
 
-        String res = this.stockLunettes.chercher(numeroSerie);
+        Fabricateur.TypeLunette typeLunette = Fabricateur.validateSerial(numeroSerie);
+
+        String res;
+        if(typeLunette != null) {
+            res = typeLunette.toString();
+        } else {
+            res = "invalid";
+        }
 
         publier("serials/" + numeroSerie, res);
     }
@@ -81,10 +86,6 @@ public class MessageManager implements MqttCallback {
 
     private String traiterCommande(String orderId, Map<Fabricateur.TypeLunette, Integer> typesLunettes) {
         List<Fabricateur.Lunette> lunettes = this.usine.produire(typesLunettes);
-
-        for(Fabricateur.Lunette lunette : lunettes) {
-            stockLunettes.ajouter(lunette);
-        }
 
         return parser.serializeLunettes(lunettes);
     }
