@@ -11,18 +11,27 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+/**
+ * Gère la production de lunettes en s'appuyant sur le Fabricateur.
+ * Thread-safe : produire() peut être appelée par plusieurs threads simultanément.
+ */
 public class Usine {
     private final Fabricateur fabricateur;
     private final ExecutorService executorService;
 
+    /**
+     * @param capacity capacité du fabricateur (nombre de lunettes par lot)
+     */
     public Usine(int capacity) {
         this.fabricateur = new Fabricateur(capacity);
         this.executorService = Executors.newFixedThreadPool(capacity);
     }
 
     /**
-     * Lance la production de lunettes. Chaque entrée de la `Map`
-     * associe au type de lunette la quantité qu'il faut en produire.
+     * Lance la production de lunettes.
+     *
+     * @param typesLunettes map associant chaque type à la quantité à produire
+     * @return la liste des lunettes produites
      */
     public List<Lunette> produire(final Map<TypeLunette, Integer> typesLunettes) {
         List<TypeLunette> aProduire = listerLunettes(typesLunettes);
@@ -42,6 +51,9 @@ public class Usine {
         return resultat;
     }
 
+    /**
+     * Configure le fabricateur et fabrique les lunettes du lot en parallèle.
+     */
     private List<Lunette> fabriquerLot(TypeLunette[] lot) {
         this.fabricateur.configurer(lot);
 
@@ -65,6 +77,9 @@ public class Usine {
         return resultat;
     }
 
+    /**
+     * Convertit la map en liste plate.
+     */
     private List<TypeLunette> listerLunettes(Map<TypeLunette, Integer> typesLunettes) {
         List<TypeLunette> listeLunettes = new ArrayList<>();
 

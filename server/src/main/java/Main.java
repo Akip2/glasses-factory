@@ -1,10 +1,13 @@
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Point d'entrée du serveur de production de lunettes.
+ * Charge la configuration, initialise l'usine et démarre le serveur MQTT.
+ */
 public class Main {
     public static void main(String[] args) {
         Properties config = new Properties();
