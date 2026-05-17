@@ -1,3 +1,6 @@
+/**
+ * Messages d'erreur liés à la validation des commandes.
+ */
 public enum ErreurMessage {
     FORMAT_INVALIDE("Format de commande invalide"),
     TYPE_INCONNU("Type de lunette inconnu"),
@@ -10,6 +13,9 @@ public enum ErreurMessage {
         this.message = message;
     }
 
+    /**
+     * @return le message d'erreur associé
+     */
     public String getMessage() {
         return message;
     }
