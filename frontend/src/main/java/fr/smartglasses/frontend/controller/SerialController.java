@@ -11,9 +11,13 @@ public class SerialController {
     }
 
     public boolean isValid(String serialNumber) {
-
-        ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
-
-        return false;
+        try {
+            ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
+            String response = client.verifierSerie(serialNumber);
+            client.disconnect();
+            return !response.equals("invalid");
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la vérification : " + e.getMessage());
+        }
     }
 }

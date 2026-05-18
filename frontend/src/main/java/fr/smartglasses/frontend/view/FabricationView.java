@@ -115,12 +115,10 @@ public class FabricationView {
 
         new Thread(() -> {
             try {
-                boolean result = orderController.startFabrication();
-
-                // TODO
-
+                orderController.startFabrication();
+                javafx.application.Platform.runLater(() -> showSuccess(layout));
             } catch (Exception e) {
-                javafx.application.Platform.runLater(() -> showError(layout,  e.getMessage()));
+                javafx.application.Platform.runLater(() -> showError(layout, e.getMessage()));
             }
         }).start();
     }
@@ -227,17 +225,8 @@ public class FabricationView {
         bottom.getChildren().addAll(note, bottomSpacer, newOrder, verify);
         tableCard.getChildren().addAll(tableTop, table, bottom);
 
-        VBox info = new VBox(8);
-        info.setMaxWidth(910);
-        info.setPadding(new Insets(20));
-        info.setStyle("-fx-background-color: #1e5bff; -fx-background-radius: 10;");
-        Label infoTitle = new Label("À propos des numéros de série");
-        infoTitle.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-        Label infoText = new Label("Chaque paire de lunettes possède un numéro de série unique qui garantit son authenticité et permet de tracer son origine.");
-        infoText.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
-        info.getChildren().addAll(infoTitle, infoText);
 
-        VBox content = new VBox(20, tableCard, info);
+        VBox content = new VBox(20, tableCard);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(40));
 

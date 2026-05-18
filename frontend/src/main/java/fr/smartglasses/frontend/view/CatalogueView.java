@@ -156,7 +156,7 @@ public class CatalogueView {
         Label quantityLabel = new Label("Quantite");
         quantityLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #020617;");
 
-        Spinner<Integer> quantitySpinner = new Spinner<>(1, 10, 1);
+        Spinner<Integer> quantitySpinner = new Spinner<>(1, 9, 1);
         quantitySpinner.setEditable(true);
         quantitySpinner.setPrefWidth(90);
 

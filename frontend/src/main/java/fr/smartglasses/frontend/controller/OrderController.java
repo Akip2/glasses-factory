@@ -6,10 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import org.eclipse.paho.client.mqttv3.MqttException;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
 
 public class OrderController {
 
@@ -35,7 +32,7 @@ public class OrderController {
                     ""
             ),
             new GlassesModel(
-                    "LECHAT",
+                    "LE_CHAT",
                     "Miaousse",
                     "Lunettes de vue sophistiquees avec monture fine et design contemporain.",
                     "129.99 EUR",
@@ -64,10 +61,7 @@ public class OrderController {
     * @return la nouvelle commande
     * */
     public Order createOrder(GlassesModel model, int quantity) {
-
-        // génération aléatoire du n° de commande
-        Random random = new Random();
-        String id = "CMD-" + (10000000 + random.nextInt(90000000)); // TODO : à voir si on laisse la génération aléatoire comme ça
+        String id = "CMD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         currentOrder = new Order(id);
         currentOrder.addGlasses(model, quantity);
@@ -103,19 +97,42 @@ public class OrderController {
      * Permet de lancer la fabrication des lunettes de la commande en cours
      * On attend la réponse du serveur et on indique la réponse à l'utilisateur
      * */
-    public boolean startFabrication() {
-
+    public void startFabrication() {
         currentOrder.setStatus(OrderStatus.IN_PROGRESS);
 
-        ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
-
         try {
-            // TODO
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+            ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
 
-        return false;
+            // Construire le payload : "TYPE:QTE;TYPE:QTE"
+            StringBuilder payload = new StringBuilder();
+            for (Map.Entry<GlassesModel, Integer> entry : currentOrder.getOrder().entrySet()) {
+                payload.append(entry.getKey().code())
+                        .append(":")
+                        .append(entry.getValue())
+                        .append(";");
+            }
+
+            String deliveryPayload = client.passerCommande(currentOrder.getId(), payload.toString());
+            client.disconnect();
+
+            // Parser la réponse : "TYPE:SERIAL;TYPE:SERIAL;..."
+            List<SerialPair> serials = new ArrayList<>();
+            for (String part : deliveryPayload.split(";")) {
+                if (part.isBlank()) continue;
+                String[] kv = part.split(":");
+                if (kv.length == 2) {
+                    serials.add(new SerialPair(kv[1], kv[0]));
+                }
+            }
+
+            currentOrder.setSerialNumbers(serials);
+            currentOrder.complete();
+            refreshInfos();
+
+        } catch (Exception e) {
+            currentOrder.setStatus(OrderStatus.CREATED);
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     public void refreshInfos() {
@@ -124,20 +141,5 @@ public class OrderController {
 
     public StringProperty infosCommandeProperty() {
         return infosCommandeProperty;
-    }
-
-    /**
-     * Crée une nouvelle commande et réinitialise la commande en cours
-     */
-    public void createNewOrder() {
-        if (currentOrder != null && !currentOrder.isCompleted()) {
-            currentOrder.resetOrder();
-        }
-
-        // Générer une nouvelle commande
-        Random random = new Random();
-        String id = "CMD-" + (10000000 + random.nextInt(90000000));
-        currentOrder = new Order(id);
-        refreshInfos();
     }
 }

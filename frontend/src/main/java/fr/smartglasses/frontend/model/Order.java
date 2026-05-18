@@ -111,7 +111,7 @@ public class Order {
     /**
      * Ajoute les numéros de série générés par la fabrication
      *
-     * @pamae
+     * @param serialNumbers liste des paires de numéros de série et modèles correspondants
      */
     public void setSerialNumbers(List<SerialPair> serialNumbers) {
         this.serialNumbers = serialNumbers != null ? serialNumbers : new ArrayList<>();
@@ -119,6 +119,8 @@ public class Order {
 
     /**
      * Retourne tous les numéros de série générés
+     *
+     * @return liste des paires numéro de série / modèle
      */
     public List<SerialPair> getSerialNumbers() {
         return serialNumbers;
