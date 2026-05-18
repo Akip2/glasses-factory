@@ -1,18 +1,21 @@
 package fr.smartglasses.frontend.model;
 
 import java.util.*;
+import java.time.LocalDateTime;
 
 public class Order {
 
     private final String id;
     private final Map<GlassesModel, Integer> glassesQuantity = new HashMap<>();
     private OrderStatus status = OrderStatus.CREATED;
+    private List<SerialPair> serialNumbers = new ArrayList<>(); // Numéros générés
+    private LocalDateTime completionDate;
 
     /*
-    * Constructeur de commande
-    *
-    * @param id identifiant unique de la commande
-    * */
+     * Constructeur de commande
+     *
+     * @param id identifiant unique de la commande
+     * */
     public Order(String id) {
         this.id = id;
     }
@@ -45,12 +48,27 @@ public class Order {
                     .append("\n");
         }
 
+        if (!serialNumbers.isEmpty()) {
+            sb.append("\nNuméros de série générés (").append(serialNumbers.size()).append(") :\n");
+            int count = 1;
+            for (SerialPair pair : serialNumbers) {
+                sb.append("  ").append(count).append(". ").append(pair).append("\n");
+                count++;
+            }
+        }
+
+        if (status == OrderStatus.COMPLETED && completionDate != null) {
+            sb.append("\nDate de fabrication : ").append(completionDate).append("\n");
+        }
+
         return sb.toString();
     }
 
-    public void resetOrder(){
+    public void resetOrder() {
         glassesQuantity.clear();
+        serialNumbers.clear();
         status = OrderStatus.CREATED;
+        completionDate = null;
     }
 
     // Getters / Setters
@@ -83,9 +101,27 @@ public class Order {
 
     public void complete() {
         status = OrderStatus.COMPLETED;
+        this.completionDate = LocalDateTime.now();
     }
 
     public boolean isCompleted() {
         return status == OrderStatus.COMPLETED;
     }
+
+    /**
+     * Ajoute les numéros de série générés par la fabrication
+     *
+     * @pamae
+     */
+    public void setSerialNumbers(List<SerialPair> serialNumbers) {
+        this.serialNumbers = serialNumbers != null ? serialNumbers : new ArrayList<>();
+    }
+
+    /**
+     * Retourne tous les numéros de série générés
+     */
+    public List<SerialPair> getSerialNumbers() {
+        return serialNumbers;
+    }
+
 }

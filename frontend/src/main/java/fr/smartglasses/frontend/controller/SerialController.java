@@ -1,6 +1,6 @@
 package fr.smartglasses.frontend.controller;
 
-import fr.smartglasses.frontend.model.Order;
+import fr.smartglasses.frontend.service.ClientMqtt;
 
 public class SerialController {
 
@@ -10,9 +10,10 @@ public class SerialController {
         this.orderController = orderController;
     }
 
-//    public boolean isValid(String serialNumber) {
-//        Order order = orderController.getCurrentOrder();
-//        return order != null && order.getSerialNumbers().stream()
-//                .anyMatch(number -> number.value().equals(serialNumber));
-//    }
+    public boolean isValid(String serialNumber) {
+
+        ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
+
+        return false;
+    }
 }

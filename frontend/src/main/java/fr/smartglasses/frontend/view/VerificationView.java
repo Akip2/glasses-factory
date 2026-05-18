@@ -2,7 +2,6 @@ package fr.smartglasses.frontend.view;
 
 import fr.smartglasses.frontend.controller.SerialController;
 import fr.smartglasses.frontend.model.Order;
-import fr.smartglasses.frontend.model.SerialNumber;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -98,15 +97,7 @@ public class VerificationView {
         result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
 
         verifyBtn.setOnAction(e -> {
-            String value = serialInput.getText().trim();
-
-//            if (serialController.isValid(value)) {
-//                result.setText("Numero valide : lunettes authentiques");
-//                result.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 15px; -fx-font-weight: bold;");
-//            } else {
-//                result.setText("Numero invalide ou introuvable");
-//                result.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold;");
-//            }
+            // TODO
         });
 
         inputLine.getChildren().addAll(serialInput, verifyBtn);
@@ -140,11 +131,7 @@ public class VerificationView {
 
         Order order = layout.getAppController().getOrderController().getCurrentOrder();
         if (order != null && order.isCompleted()) {
-            int index = 0;
-//            for (SerialNumber serialNumber : order.getSerialNumbers()) {
-//                examplesGrid.add(exampleBox(serialNumber.value()), index % 2, index / 2);
-//                index++;
-//            }
+            // TODO
         } else {
             examplesGrid.add(exampleBox("Aucun numero genere pour le moment"), 0, 0);
         }

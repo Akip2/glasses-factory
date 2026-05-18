@@ -20,8 +20,10 @@ import javafx.scene.text.Text;
 public class CatalogueView {
 
     private final ScrollPane view;
+    private final Layout layout;
 
     public CatalogueView(Layout layout, OrderController orderController) {
+        this.layout = layout;
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
 
@@ -36,10 +38,19 @@ public class CatalogueView {
             cards.getChildren().add(productCard(model, layout, orderController));
         }
 
-        Text infosCommande = new Text(orderController.getInfosCommande());
+        // détail de la commande en cours, lié avec le contrôleur pour un affichage dynamique
+        Text infosCommande = new Text();
+        infosCommande.textProperty().bind(orderController.infosCommandeProperty());
+
+        // Créer et centrer le bouton Commander
+        Button commandeBtn = btnCommander(orderController);
+        HBox btnWrapper = new HBox(commandeBtn);
+        btnWrapper.setAlignment(Pos.CENTER);
+        btnWrapper.setPadding(new Insets(30, 0, 60, 0));
+        btnWrapper.setMaxWidth(Double.MAX_VALUE);
 
         // ajout de tous les éléments de la page au layout
-        page.getChildren().addAll(header(), cards, infosCommande, btnCommander(orderController));
+        page.getChildren().addAll(header(), cards, infosCommande, btnWrapper);
 
         view = new ScrollPane(page);
         view.setFitToWidth(true);
@@ -174,10 +185,11 @@ public class CatalogueView {
     }
 
     /*
-    * Bouton de validation de la commande, qui lance le processus de fabrication
-    *
-    * @return le bouton stylisé et correctement configuré, prêt à être affiché sur la page
-    * */
+     * Bouton de validation de la commande, qui lance le processus de fabrication
+     * Redirige vers la page de fabrication
+     *
+     * @return le bouton stylisé et correctement configuré, prêt à être affiché sur la page
+     * */
     Button btnCommander(OrderController orderController) {
         Button btnPasserCommande = new Button("Commander");
         btnPasserCommande.setPrefHeight(45);
@@ -190,12 +202,9 @@ public class CatalogueView {
             -fx-cursor: hand;
         """);
         btnPasserCommande.setOnAction(e -> {
-            orderController.startFabrication();
-
-            // while (orderController.)
-
-            // TODO : à faire
-            // layout.setContent(new FabricationView(layout, orderController).getView());
+            // Redirection vers la page de fabrication
+            FabricationView fabricationView = new FabricationView(layout, orderController);
+            layout.setContent(fabricationView.getView());
         });
 
         return btnPasserCommande;

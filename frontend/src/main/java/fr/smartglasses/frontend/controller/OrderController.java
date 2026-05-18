@@ -1,19 +1,21 @@
 package fr.smartglasses.frontend.controller;
 
-import fr.smartglasses.frontend.model.GlassesModel;
-import fr.smartglasses.frontend.model.Order;
-import fr.smartglasses.frontend.model.OrderStatus;
+import fr.smartglasses.frontend.model.*;
+import fr.smartglasses.frontend.service.ClientMqtt;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Random;
 
 public class OrderController {
 
-    private final Random random = new Random();
     private Order currentOrder;
 
-    // TODO : à utiliser comme ça ? A voir...
-    // private final ExecutorService executor = Executors.newFixedThreadPool(4);
+    private final StringProperty infosCommandeProperty = new SimpleStringProperty("");
 
     private final List<GlassesModel> catalogue = List.of(
             new GlassesModel(
@@ -62,7 +64,9 @@ public class OrderController {
     * @return la nouvelle commande
     * */
     public Order createOrder(GlassesModel model, int quantity) {
-        // génération du n° de commande aléatoire
+
+        // génération aléatoire du n° de commande
+        Random random = new Random();
         String id = "CMD-" + (10000000 + random.nextInt(90000000)); // TODO : à voir si on laisse la génération aléatoire comme ça
 
         currentOrder = new Order(id);
@@ -84,6 +88,7 @@ public class OrderController {
         }
 
         currentOrder.addGlasses(model, quantity);
+        refreshInfos();
     }
 
     public Order getCurrentOrder() {
@@ -94,32 +99,45 @@ public class OrderController {
         return currentOrder != null ? currentOrder.toString() : "Aucune commande en cours";
     }
 
-    // TODO : à supprimer plus tard, uniquement pour les tests
-    public Order completeCurrentOrder() {
-        if (currentOrder == null) {
-            return null;
+    /*
+     * Permet de lancer la fabrication des lunettes de la commande en cours
+     * On attend la réponse du serveur et on indique la réponse à l'utilisateur
+     * */
+    public boolean startFabrication() {
+
+        currentOrder.setStatus(OrderStatus.IN_PROGRESS);
+
+        ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
+
+        try {
+            // TODO
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
 
-        currentOrder.complete();
-
-        return currentOrder;
+        return false;
     }
 
-    /*
-    * Permet de lancer la fabrication des lunettes de la commande en cours
-    * On attend la réponse du serveur et on indique la réponse à l'utilisateur
-    * */
-    public void startFabrication() {
-//        currentOrder.setStatus(OrderStatus.IN_PROGRESS);
-//
-//        // TODO : à faire quand Antoine aura fait les threads
-//        Future<String> future = executor.submit(() -> callServer());
-//
-//        // on peut faire autre chose en attendant
-//
-//        // bloque ici jusqu'à la réponse
-//        // on attend max 60s, après c'est considéré comme un échec
-//        String response = future.get(60, TimeUnit.SECONDS);
-//        currentOrder.complete();
+    public void refreshInfos() {
+        infosCommandeProperty.set(getInfosCommande());
+    }
+
+    public StringProperty infosCommandeProperty() {
+        return infosCommandeProperty;
+    }
+
+    /**
+     * Crée une nouvelle commande et réinitialise la commande en cours
+     */
+    public void createNewOrder() {
+        if (currentOrder != null && !currentOrder.isCompleted()) {
+            currentOrder.resetOrder();
+        }
+
+        // Générer une nouvelle commande
+        Random random = new Random();
+        String id = "CMD-" + (10000000 + random.nextInt(90000000));
+        currentOrder = new Order(id);
+        refreshInfos();
     }
 }
