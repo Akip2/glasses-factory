@@ -1,15 +1,13 @@
 package fr.smartglasses.frontend.view;
 
 import fr.smartglasses.frontend.controller.SerialController;
-import fr.smartglasses.frontend.model.Order;
-import fr.smartglasses.frontend.model.SerialPair;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -28,10 +26,10 @@ public class VerificationView {
         header.setPadding(new Insets(40, 0, 45, 300));
         header.setStyle("-fx-background-color: #1e5bff;");
 
-        Label title = new Label("Verification de numero de serie");
+        Label title = new Label("Vérification de numéro de série");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 36px; -fx-font-weight: bold;");
 
-        Label subtitle = new Label("Verifiez l'authenticite de vos lunettes connectees");
+        Label subtitle = new Label("Verifiez l'authenticité de vos lunettes connectées");
         subtitle.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
 
         header.getChildren().addAll(title, subtitle);
@@ -58,7 +56,7 @@ public class VerificationView {
         Label searchTitle = new Label("Recherche");
         searchTitle.setStyle("-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;");
 
-        Label searchSubtitle = new Label("Entrez le numero de serie complet pour verifier son authenticite");
+        Label searchSubtitle = new Label("Entrez le numéro de série complet pour verifier son authenticité");
         searchSubtitle.setStyle("-fx-text-fill: white; -fx-font-size: 15px;");
 
         searchHeader.getChildren().addAll(searchTitle, searchSubtitle);
@@ -66,7 +64,7 @@ public class VerificationView {
         VBox form = new VBox(12);
         form.setPadding(new Insets(45, 25, 25, 25));
 
-        Label fieldLabel = new Label("Numero de serie");
+        Label fieldLabel = new Label("Numero de série");
         fieldLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #020617;");
 
         HBox inputLine = new HBox(12);

@@ -4,10 +4,15 @@ import fr.smartglasses.frontend.controller.OrderController;
 import fr.smartglasses.frontend.model.Order;
 import fr.smartglasses.frontend.model.SerialPair;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -113,14 +118,18 @@ public class FabricationView {
         center.setPadding(new Insets(90, 60, 60, 60));
         view.setCenter(center);
 
-        new Thread(() -> {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        executor.submit(() -> {
             try {
                 orderController.startFabrication();
-                javafx.application.Platform.runLater(() -> showSuccess(layout));
+                Platform.runLater(() -> showSuccess(layout));
             } catch (Exception e) {
-                javafx.application.Platform.runLater(() -> showError(layout, e.getMessage()));
+                Platform.runLater(() -> showError(layout, e.getMessage()));
+            } finally {
+                executor.shutdown(); // libère les ressources une fois la tâche finie
             }
-        }).start();
+        });
     }
 
     // Affiche le message de succès avec les numéros de série
@@ -219,7 +228,10 @@ public class FabricationView {
         Button newOrder = new Button("Nouvelle commande");
         Button verify = new Button("Vérifier un numéro");
 
-        newOrder.setOnAction(e -> layout.setContent(new CatalogueView(layout, orderController).getView()));
+        newOrder.setOnAction(e -> {
+            orderController.resetOrder();
+            layout.setContent(new CatalogueView(layout, orderController).getView());
+        });
         verify.setOnAction(e -> layout.setContent(new VerificationView(layout, layout.getAppController().getSerialController()).getView()));
 
         bottom.getChildren().addAll(note, bottomSpacer, newOrder, verify);
@@ -230,7 +242,14 @@ public class FabricationView {
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(40));
 
-        page.getChildren().addAll(header, content);
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background: #f1f6ff; -fx-background-color: #f1f6ff;");
+
+        page.getChildren().addAll(header, scrollPane);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
         view.setCenter(page);
     }
 

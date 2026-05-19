@@ -17,6 +17,8 @@ import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import java.util.Objects;
+
 public class CatalogueView {
 
     private final ScrollPane view;
@@ -35,7 +37,7 @@ public class CatalogueView {
         cards.setPadding(new Insets(60, 50, 60, 50));
 
         for (GlassesModel model : orderController.getCatalogue()) {
-            cards.getChildren().add(productCard(model, layout, orderController));
+            cards.getChildren().add(productCard(model, orderController));
         }
 
         // détail de la commande en cours, lié avec le contrôleur pour un affichage dynamique
@@ -58,10 +60,10 @@ public class CatalogueView {
     }
 
     /*
-    * Header de la page catalogue, avec un titre et un sous-titre
-    *
-    * @return le header stylisé et correctement organisé, prêt à être affiché en haut de la page
-    * */
+     * Header de la page catalogue, avec un titre et un sous-titre
+     *
+     * @return le header stylisé et correctement organisé, prêt à être affiché en haut de la page
+     */
     private VBox header() {
         VBox header = new VBox(15);
         header.setPadding(new Insets(0, 0, 55, 45));
@@ -80,15 +82,13 @@ public class CatalogueView {
     }
 
     /*
-    * Carte d'affichage d'un modèle de lunettes dans le catalogue
-    *
-    * @return la carte stylisée et correctement organisée, prête à être affichée sur la page
-    * */
-    private VBox productCard(
-            GlassesModel model,
-            Layout layout,
-            OrderController orderController
-    ) {
+     * Carte d'affichage d'un modèle de lunettes dans le catalogue
+     *
+     * @param model modèle de lunette à afficher sur la carte
+     * @param orderController contrôleur de la commande, pour gérer l'ajout au panier
+     * @return la carte stylisée prête à être affichée
+     */
+    private VBox productCard(GlassesModel model, OrderController orderController) {
         VBox card = new VBox();
         card.setPrefWidth(430);
         card.setStyle("""
@@ -104,7 +104,7 @@ public class CatalogueView {
             -fx-background-radius: 15 15 0 0;
         """);
 
-        ImageView image = new ImageView(new Image(getClass().getResource(model.imagePath()).toExternalForm()));
+        ImageView image = new ImageView(new Image(Objects.requireNonNull(getClass().getResource(model.imagePath())).toExternalForm()));
         image.setFitWidth(380);
         image.setFitHeight(180);
         image.setPreserveRatio(false);
@@ -189,7 +189,7 @@ public class CatalogueView {
      * Redirige vers la page de fabrication
      *
      * @return le bouton stylisé et correctement configuré, prêt à être affiché sur la page
-     * */
+     */
     Button btnCommander(OrderController orderController) {
         Button btnPasserCommande = new Button("Commander");
         btnPasserCommande.setPrefHeight(45);

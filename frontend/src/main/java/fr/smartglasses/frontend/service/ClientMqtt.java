@@ -9,12 +9,17 @@ import java.util.function.Consumer;
 
 public class ClientMqtt implements MqttCallback {
 
-    private MqttClient client;
+    private final MqttClient client;
 
     // Files d'attente pour synchroniser les réponses MQTT avec le thread appelant
     private final BlockingQueue<String> orderResponseQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<String> serialResponseQueue = new LinkedBlockingQueue<>();
 
+    /*
+     * Constructeur de ClientMqtt
+     *
+     * @param brokerUrl l'url du broker MQTT
+     */
     public ClientMqtt(String brokerUrl) throws MqttException {
         this.client = new MqttClient(brokerUrl, MqttClient.generateClientId());
         this.client.setCallback(this);
@@ -28,9 +33,10 @@ public class ClientMqtt implements MqttCallback {
     }
 
     /**
-     * Publie une commande et attend la réponse finale (delivery, error ou cancelled).
-     * Bloque jusqu'à 1 minute.
+     * Publie une commande et attend la réponse
      *
+     * @param orderId identifiant de la commande
+     * @param payload le contenu de la commande
      * @return le payload de livraison (numéros de série)
      * @throws Exception si la commande est annulée, en erreur, ou si le timeout expire
      */
@@ -50,9 +56,9 @@ public class ClientMqtt implements MqttCallback {
     }
 
     /**
-     * Publie une demande de vérification de numéro de série et attend la réponse.
-     * Bloque jusqu'à 10 secondes.
+     * Publie une demande de vérification de numéro de série et attend la réponse
      *
+     * @param numeroSerie le numéro de série à vérifier
      * @return le type de lunette associé, ou "invalid"
      */
     public String verifierSerie(String numeroSerie) throws Exception {
@@ -67,6 +73,12 @@ public class ClientMqtt implements MqttCallback {
         return response;
     }
 
+    /**
+     * Traite les messages MQTT reçus
+     *
+     * @param topic le topic du message
+     * @param message le message reçu
+     */
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         String payload = new String(message.getPayload());
@@ -75,7 +87,7 @@ public class ClientMqtt implements MqttCallback {
         if (parts[0].equals("orders") && parts.length == 3) {
             String event = parts[2];
             switch (event) {
-                case "validated" -> { /* on ne bloque pas sur validated */ }
+                case "validated" -> {}
                 case "delivery"  -> orderResponseQueue.offer(payload);
                 case "error"     -> orderResponseQueue.offer("ERROR:" + payload);
                 case "cancelled" -> orderResponseQueue.offer("CANCELLED:" + payload);
