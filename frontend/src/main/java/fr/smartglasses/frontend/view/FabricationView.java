@@ -31,9 +31,11 @@ public class FabricationView {
 
         Order order = orderController.getCurrentOrder();
         if (order == null) {
-            showEmpty();
+            showEmpty(); // pas de commande en cours
+        } else if (order.getSerialNumbers() != null && !order.getSerialNumbers().isEmpty()) {
+            showSuccess(layout); // commande déjà fabriquée
         } else {
-            showWaiting(layout);
+            showWaiting(layout); // la fabrication de la commande est en cours
         }
     }
 

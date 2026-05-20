@@ -102,19 +102,25 @@ public class VerificationView {
                 result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #dc2626;");
                 return;
             }
-            try {
-                boolean valid = serialController.isValid(serial);
-                if (valid) {
-                    result.setText("✓ Numéro valide");
-                    result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #16a34a;");
-                } else {
-                    result.setText("✕ Numéro invalide");
-                    result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #dc2626;");
-                }
-            } catch (Exception ex) {
-                result.setText("Erreur : " + ex.getMessage());
-                result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #dc2626;");
-            }
+            serialController.isValid(serial)
+                    .thenAccept(valid -> Platform.runLater(() -> {
+                        verifyBtn.setDisable(false);
+                        if (valid) {
+                            result.setText("✓ Numéro valide");
+                            result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #16a34a;");
+                        } else {
+                            result.setText("✕ Numéro invalide");
+                            result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #dc2626;");
+                        }
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            verifyBtn.setDisable(false);
+                            result.setText("Erreur : " + ex.getCause().getMessage());
+                            result.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #dc2626;");
+                        });
+                        return null;
+                    });
         });
 
         inputLine.getChildren().addAll(serialInput, verifyBtn);

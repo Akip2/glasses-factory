@@ -1,7 +1,6 @@
 package fr.smartglasses.frontend.controller;
 
 import fr.smartglasses.frontend.service.ClientMqtt;
-import org.eclipse.paho.client.mqttv3.MqttException;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -17,14 +16,16 @@ public class SerialController {
      * @return un CompletableFuture qui contient vrai ou faux en fonction de la réposne du serveur
      * @throws RuntimeException si la connexion au serveur échoue ou si le délai expire
      */
-    public boolean isValid(String serialNumber) {
-        try {
-            ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
-            String response = client.verifierSerie(serialNumber);
-            client.disconnect();
-            return !response.equals("invalid");
-        } catch (Exception e) {
-            throw new RuntimeException("Erreur lors de la vérification : " + e.getMessage());
-        }
+    public CompletableFuture<Boolean> isValid(String serialNumber) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
+                String response = client.verifierSerie(serialNumber);
+                client.disconnect();
+                return !response.equals("invalid");
+            } catch (Exception e) {
+                throw new RuntimeException("Erreur lors de la vérification : " + e.getMessage());
+            }
+        });
     }
 }

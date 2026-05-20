@@ -41,18 +41,10 @@ public class CatalogueView {
         }
 
         // détail de la commande en cours, lié avec le contrôleur pour un affichage dynamique
-        Text infosCommande = new Text();
-        infosCommande.textProperty().bind(orderController.infosCommandeProperty());
-
-        // Créer et centrer le bouton Commander
-        Button commandeBtn = btnCommander(orderController);
-        HBox btnWrapper = new HBox(commandeBtn);
-        btnWrapper.setAlignment(Pos.CENTER);
-        btnWrapper.setPadding(new Insets(30, 0, 60, 0));
-        btnWrapper.setMaxWidth(Double.MAX_VALUE);
+        HBox panier = panier(orderController);
 
         // ajout de tous les éléments de la page au layout
-        page.getChildren().addAll(header(), cards, infosCommande, btnWrapper);
+        page.getChildren().addAll(header(), cards, panier);
 
         view = new ScrollPane(page);
         view.setFitToWidth(true);
@@ -73,7 +65,7 @@ public class CatalogueView {
         Label title = new Label("Catalogue de lunettes");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 42px; -fx-font-weight: bold;");
 
-        Label subtitle = new Label("Choisissez parmi nos modeles de lunettes connectees");
+        Label subtitle = new Label("Choisissez parmi nos modèles de lunettes connectées");
         subtitle.setStyle("-fx-text-fill: #dbeafe; -fx-font-size: 24px;");
 
         header.getChildren().addAll(title, subtitle);
@@ -185,12 +177,28 @@ public class CatalogueView {
     }
 
     /*
-     * Bouton de validation de la commande, qui lance le processus de fabrication
-     * Redirige vers la page de fabrication
+     * Zone de panier de la commande, qui affiche les informations de la commande
      *
-     * @return le bouton stylisé et correctement configuré, prêt à être affiché sur la page
+     * @return la zone de panier de la commande
      */
-    Button btnCommander(OrderController orderController) {
+    HBox panier(OrderController orderController) {
+
+        VBox cart = new VBox(14);
+        cart.setMaxWidth(860);
+        cart.setPadding(new Insets(22, 28, 22, 28));
+        cart.setStyle("""
+            -fx-background-color: white;
+            -fx-background-radius: 12;
+            -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 16, 0, 0, 5);
+        """);
+
+        Label cartTitle = new Label("🛒  Panier");
+        cartTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e5bff;");
+
+        Label cartInfos = new Label();
+        cartInfos.setStyle("-fx-font-size: 14px; -fx-text-fill: #475569;");
+        cartInfos.textProperty().bind(orderController.infosCommandeProperty());
+
         Button btnPasserCommande = new Button("Commander");
         btnPasserCommande.setPrefHeight(45);
         btnPasserCommande.setStyle("""
@@ -207,7 +215,14 @@ public class CatalogueView {
             layout.setContent(fabricationView.getView());
         });
 
-        return btnPasserCommande;
+        cart.getChildren().addAll(cartTitle, cartInfos, btnPasserCommande);
+
+        // centrer le panier horizontalement
+        HBox cartWrapper = new HBox(cart);
+        cartWrapper.setAlignment(Pos.CENTER);
+        cartWrapper.setPadding(new Insets(0, 50, 60, 50));
+
+        return cartWrapper;
     }
 
     public ScrollPane getView() {
