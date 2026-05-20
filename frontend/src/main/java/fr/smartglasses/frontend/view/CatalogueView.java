@@ -15,27 +15,19 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+
+import java.util.Objects;
 
 public class CatalogueView {
 
     private final ScrollPane view;
+    private final Layout layout;
 
     public CatalogueView(Layout layout, OrderController orderController) {
+        this.layout = layout;
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
-
-        VBox header = new VBox(15);
-        header.setPadding(new Insets(0, 0, 55, 45));
-        header.setPrefHeight(150);
-        header.setStyle("-fx-background-color: #1e5bff;");
-
-        Label title = new Label("Catalogue de lunettes");
-        title.setStyle("-fx-text-fill: white; -fx-font-size: 42px; -fx-font-weight: bold;");
-
-        Label subtitle = new Label("Choisissez parmi nos modeles de lunettes connectees");
-        subtitle.setStyle("-fx-text-fill: #dbeafe; -fx-font-size: 24px;");
-
-        header.getChildren().addAll(title, subtitle);
 
         TilePane cards = new TilePane();
         cards.setAlignment(Pos.CENTER);
@@ -45,21 +37,50 @@ public class CatalogueView {
         cards.setPadding(new Insets(60, 50, 60, 50));
 
         for (GlassesModel model : orderController.getCatalogue()) {
-            cards.getChildren().add(productCard(model, layout, orderController));
+            cards.getChildren().add(productCard(model, orderController));
         }
 
-        page.getChildren().addAll(header, cards);
+        // détail de la commande en cours, lié avec le contrôleur pour un affichage dynamique
+        HBox panier = panier(orderController);
+
+        // ajout de tous les éléments de la page au layout
+        page.getChildren().addAll(header(), cards, panier);
 
         view = new ScrollPane(page);
         view.setFitToWidth(true);
         view.setStyle("-fx-background: #f1f6ff;");
     }
 
-    private VBox productCard(
-            GlassesModel model,
-            Layout layout,
-            OrderController orderController
-    ) {
+    /*
+     * Header de la page catalogue, avec un titre et un sous-titre
+     *
+     * @return le header stylisé et correctement organisé, prêt à être affiché en haut de la page
+     */
+    private VBox header() {
+        VBox header = new VBox(15);
+        header.setPadding(new Insets(0, 0, 55, 45));
+        header.setPrefHeight(150);
+        header.setStyle("-fx-background-color: #1e5bff;");
+
+        Label title = new Label("Catalogue de lunettes");
+        title.setStyle("-fx-text-fill: white; -fx-font-size: 42px; -fx-font-weight: bold;");
+
+        Label subtitle = new Label("Choisissez parmi nos modèles de lunettes connectées");
+        subtitle.setStyle("-fx-text-fill: #dbeafe; -fx-font-size: 24px;");
+
+        header.getChildren().addAll(title, subtitle);
+
+        return header;
+    }
+
+    /*
+     * Carte d'affichage d'un modèle de lunettes dans le catalogue
+     *
+     * @param model modèle de lunette à afficher sur la carte
+     * @param orderController contrôleur de la commande, pour gérer l'ajout au panier
+     * @return la carte stylisée prête à être affichée
+     */
+    private VBox productCard(GlassesModel model, OrderController orderController) {
         VBox card = new VBox();
         card.setPrefWidth(430);
         card.setStyle("""
@@ -75,7 +96,7 @@ public class CatalogueView {
             -fx-background-radius: 15 15 0 0;
         """);
 
-        ImageView image = new ImageView(new Image(getClass().getResource(model.imagePath()).toExternalForm()));
+        ImageView image = new ImageView(new Image(Objects.requireNonNull(getClass().getResource(model.imagePath())).toExternalForm()));
         image.setFitWidth(380);
         image.setFitHeight(180);
         image.setPreserveRatio(false);
@@ -127,7 +148,7 @@ public class CatalogueView {
         Label quantityLabel = new Label("Quantite");
         quantityLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #020617;");
 
-        Spinner<Integer> quantitySpinner = new Spinner<>(1, 10, 1);
+        Spinner<Integer> quantitySpinner = new Spinner<>(1, 9, 1);
         quantitySpinner.setEditable(true);
         quantitySpinner.setPrefWidth(90);
 
@@ -145,8 +166,7 @@ public class CatalogueView {
             -fx-cursor: hand;
         """);
         addBtn.setOnAction(e -> {
-            orderController.createOrder(model, quantitySpinner.getValue());
-            layout.setContent(new FabricationView(layout, orderController).getView());
+            orderController.addGlasses(model, quantitySpinner.getValue());
         });
 
         orderLine.getChildren().addAll(quantityLabel, quantitySpinner, addBtn);
@@ -154,6 +174,55 @@ public class CatalogueView {
 
         card.getChildren().addAll(imageArea, body);
         return card;
+    }
+
+    /*
+     * Zone de panier de la commande, qui affiche les informations de la commande
+     *
+     * @return la zone de panier de la commande
+     */
+    HBox panier(OrderController orderController) {
+
+        VBox cart = new VBox(14);
+        cart.setMaxWidth(860);
+        cart.setPadding(new Insets(22, 28, 22, 28));
+        cart.setStyle("""
+            -fx-background-color: white;
+            -fx-background-radius: 12;
+            -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.10), 16, 0, 0, 5);
+        """);
+
+        Label cartTitle = new Label("🛒  Panier");
+        cartTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e5bff;");
+
+        Label cartInfos = new Label();
+        cartInfos.setStyle("-fx-font-size: 14px; -fx-text-fill: #475569;");
+        cartInfos.textProperty().bind(orderController.infosCommandeProperty());
+
+        Button btnPasserCommande = new Button("Commander");
+        btnPasserCommande.setPrefHeight(45);
+        btnPasserCommande.setStyle("""
+            -fx-background-color: #1e5bff;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 0 22;
+            -fx-background-radius: 8;
+            -fx-cursor: hand;
+        """);
+        btnPasserCommande.setOnAction(e -> {
+            // Redirection vers la page de fabrication
+            FabricationView fabricationView = new FabricationView(layout, orderController);
+            layout.setContent(fabricationView.getView());
+        });
+
+        cart.getChildren().addAll(cartTitle, cartInfos, btnPasserCommande);
+
+        // centrer le panier horizontalement
+        HBox cartWrapper = new HBox(cart);
+        cartWrapper.setAlignment(Pos.CENTER);
+        cartWrapper.setPadding(new Insets(0, 50, 60, 50));
+
+        return cartWrapper;
     }
 
     public ScrollPane getView() {

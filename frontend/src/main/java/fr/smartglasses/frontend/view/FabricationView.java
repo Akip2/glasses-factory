@@ -2,14 +2,17 @@ package fr.smartglasses.frontend.view;
 
 import fr.smartglasses.frontend.controller.OrderController;
 import fr.smartglasses.frontend.model.Order;
-import fr.smartglasses.frontend.model.SerialNumber;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import fr.smartglasses.frontend.model.SerialPair;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -17,21 +20,69 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 public class FabricationView {
 
     private final BorderPane view = new BorderPane();
-    private final ProgressBar progressBar = new ProgressBar(0);
-    private final Label percentLabel = new Label("0%");
     private final OrderController orderController;
 
     public FabricationView(Layout layout, OrderController orderController) {
         this.orderController = orderController;
-        showInProgress(layout);
+
+        Order order = orderController.getCurrentOrder();
+        if (order == null) {
+            showEmpty(); // pas de commande en cours
+        } else if (order.getSerialNumbers() != null && !order.getSerialNumbers().isEmpty()) {
+            showSuccess(layout); // commande déjà fabriquée
+        } else {
+            showWaiting(layout); // la fabrication de la commande est en cours
+        }
     }
 
-    private void showInProgress(Layout layout) {
+    // Affiche un message quand aucune commande n'est en cours
+    private void showEmpty() {
+        view.setStyle("-fx-background-color: #f1f6ff;");
+
+        VBox card = new VBox(20);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(55));
+        card.setMaxWidth(600);
+        card.setStyle("""
+            -fx-background-color: white;
+            -fx-background-radius: 16;
+            -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 28, 0, 0, 10);
+        """);
+
+        Label icon = new Label("◷");
+        icon.setAlignment(Pos.CENTER);
+        icon.setPrefSize(100, 100);
+        icon.setStyle("""
+            -fx-background-color: #eff6ff;
+            -fx-border-color: #93c5fd;
+            -fx-border-width: 3;
+            -fx-border-radius: 100;
+            -fx-background-radius: 100;
+            -fx-text-fill: #1e5bff;
+            -fx-font-size: 42px;
+        """);
+
+        Label title = new Label("Aucune commande en cours");
+        title.setStyle("-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #020617;");
+
+        Label subtitle = new Label("Passez une commande depuis le catalogue pour lancer la fabrication.");
+        subtitle.setStyle("-fx-font-size: 16px; -fx-text-fill: #475569; -fx-wrap-text: true;");
+        subtitle.setMaxWidth(480);
+        subtitle.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(icon, title, subtitle);
+
+        StackPane center = new StackPane(card);
+        center.setPadding(new Insets(90, 60, 60, 60));
+        view.setCenter(center);
+    }
+
+    // Affiche "Veuillez patienter" et lance la fabrication en arrière-plan
+    private void showWaiting(Layout layout) {
         view.setStyle("-fx-background-color: #f1f6ff;");
 
         VBox card = new VBox(25);
@@ -44,7 +95,7 @@ public class FabricationView {
             -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 28, 0, 0, 10);
         """);
 
-        Label icon = new Label("...");
+        Label icon = new Label("⏳");
         icon.setAlignment(Pos.CENTER);
         icon.setPrefSize(120, 120);
         icon.setStyle("""
@@ -54,8 +105,7 @@ public class FabricationView {
             -fx-border-radius: 100;
             -fx-background-radius: 100;
             -fx-text-fill: #1e5bff;
-            -fx-font-size: 34px;
-            -fx-font-weight: bold;
+            -fx-font-size: 50px;
         """);
 
         Label title = new Label("Fabrication en cours");
@@ -64,86 +114,35 @@ public class FabricationView {
         Label subtitle = new Label("Vos lunettes sont en cours de fabrication, veuillez patienter...");
         subtitle.setStyle("-fx-font-size: 20px; -fx-text-fill: #334155;");
 
-        HBox progressHeader = new HBox();
-        progressHeader.setAlignment(Pos.CENTER_LEFT);
-        progressHeader.setPrefWidth(650);
-
-        Label progressText = new Label("Progression");
-        progressText.setStyle("-fx-font-size: 16px; -fx-text-fill: #334155;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        percentLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e5bff;");
-        progressHeader.getChildren().addAll(progressText, spacer, percentLabel);
-
-        progressBar.setPrefWidth(650);
-        progressBar.setPrefHeight(14);
-        progressBar.setStyle("-fx-accent: #020617;");
-
-        HBox steps = new HBox(20);
-        steps.setAlignment(Pos.CENTER);
-        steps.getChildren().addAll(
-                stepBox("1", "Preparation", true),
-                stepBox("2", "Assemblage", false),
-                stepBox("3", "Finalisation", false)
-        );
-
-        card.getChildren().addAll(icon, title, subtitle, progressHeader, progressBar, steps);
+        card.getChildren().addAll(icon, title, subtitle);
 
         StackPane center = new StackPane(card);
         center.setPadding(new Insets(90, 60, 60, 60));
-
         view.setCenter(center);
-        startProgress(layout);
-    }
 
-    private VBox stepBox(String icon, String text, boolean active) {
-        VBox box = new VBox(10);
-        box.setAlignment(Pos.CENTER);
-        box.setPrefSize(205, 85);
-        box.setStyle(active
-                ? "-fx-background-color: #eff6ff; -fx-background-radius: 10;"
-                : "-fx-background-color: #f8fafc; -fx-background-radius: 10;"
-        );
+        ExecutorService executor = Executors.newSingleThreadExecutor();
 
-        Label i = new Label(icon);
-        i.setStyle((active ? "-fx-text-fill: #1e5bff;" : "-fx-text-fill: #64748b;") + "-fx-font-size: 30px;");
-
-        Label label = new Label(text);
-        label.setStyle((active ? "-fx-text-fill: #1e5bff;" : "-fx-text-fill: #64748b;") + "-fx-font-size: 15px;");
-
-        box.getChildren().addAll(i, label);
-        return box;
-    }
-
-    private void startProgress(Layout layout) {
-        Timeline timeline = new Timeline();
-        timeline.setCycleCount(100);
-
-        KeyFrame frame = new KeyFrame(Duration.millis(50), e -> {
-            double value = progressBar.getProgress() + 0.01;
-            progressBar.setProgress(value);
-            percentLabel.setText((int) (value * 100) + "%");
-
-            if (value >= 1.0) {
-                timeline.stop();
-                showFinished(layout);
+        executor.submit(() -> {
+            try {
+                orderController.startFabrication();
+                Platform.runLater(() -> showSuccess(layout));
+            } catch (Exception e) {
+                Platform.runLater(() -> showError(layout, e.getMessage()));
+            } finally {
+                executor.shutdown(); // libère les ressources une fois la tâche finie
             }
         });
-
-        timeline.getKeyFrames().add(frame);
-        timeline.play();
     }
 
-    private void showFinished(Layout layout) {
+    // Affiche le message de succès avec les numéros de série
+    private void showSuccess(Layout layout) {
         view.getChildren().clear();
         view.setStyle("-fx-background-color: #f1f6ff;");
 
-        Order order = orderController.completeCurrentOrder();
+        Order order = orderController.getCurrentOrder();
         String orderId = order == null ? "CMD-00000000" : order.getId();
-        String modelName = order == null ? "Aucune commande" : order.getModel().name();
-        int quantity = order == null ? 0 : order.getQuantity();
+        List<SerialPair> serials = order == null ? List.of() : order.getSerialNumbers();
+        int quantity = serials.size();
 
         VBox page = new VBox();
         page.setStyle("-fx-background-color: #f1f6ff;");
@@ -153,21 +152,21 @@ public class FabricationView {
         header.setPadding(new Insets(35, 0, 35, 310));
         header.setStyle("-fx-background-color: #1e5bff;");
 
-        Label check = new Label("OK");
+        Label check = new Label("✓");
         check.setAlignment(Pos.CENTER);
         check.setPrefSize(45, 45);
         check.setStyle("""
             -fx-background-color: white;
-            -fx-text-fill: #1e5bff;
-            -fx-font-size: 18px;
+            -fx-text-fill: #16a34a;
+            -fx-font-size: 24px;
             -fx-font-weight: bold;
             -fx-background-radius: 50;
         """);
 
         VBox headerText = new VBox(2);
-        Label title = new Label("Fabrication terminee !");
+        Label title = new Label("Fabrication terminée !");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;");
-        Label subtitle = new Label("Vos numeros de serie sont prets");
+        Label subtitle = new Label("Vos numéros de série sont prêts");
         subtitle.setStyle("-fx-text-fill: white; -fx-font-size: 17px;");
         headerText.getChildren().addAll(title, subtitle);
         header.getChildren().addAll(check, headerText);
@@ -186,9 +185,9 @@ public class FabricationView {
         tableTop.setStyle("-fx-background-color: #2f7cff; -fx-background-radius: 10 10 0 0;");
 
         VBox left = new VBox(8);
-        Label tableTitle = new Label("Numeros de serie generes");
+        Label tableTitle = new Label("Numéros de série générés");
         tableTitle.setStyle("-fx-text-fill: white; -fx-font-size: 23px; -fx-font-weight: bold;");
-        Label count = new Label(order == null ? "Aucune lunette fabriquee" : quantity + " lunette(s) fabriquee(s)");
+        Label count = new Label(quantity + " lunette(s) fabriquée(s)");
         count.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
         left.getChildren().addAll(tableTitle, count);
 
@@ -211,13 +210,10 @@ public class FabricationView {
         table.setVgap(12);
         table.setHgap(60);
 
-        addRow(table, 0, "#", "Numero de serie", "Modele", "Statut", true);
-        if (order != null) {
-            int row = 1;
-            for (SerialNumber serialNumber : order.getSerialNumbers()) {
-                addRow(table, row, String.valueOf(row), serialNumber.value(), modelName, "Genere", false);
-                row++;
-            }
+        addRow(table, 0, "#", "Numéro de série", "Modèle", "Statut", true);
+        for (int i = 0; i < serials.size(); i++) {
+            SerialPair pair = serials.get(i);
+            addRow(table, i + 1, String.valueOf(i + 1), pair.numeroSerie(), pair.modele(), "Généré", false);
         }
 
         HBox bottom = new HBox(15);
@@ -225,32 +221,119 @@ public class FabricationView {
         bottom.setPadding(new Insets(20, 25, 20, 25));
         bottom.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 0 0 10 10;");
 
-        Label note = new Label("Vous pouvez verifier chaque numero de serie dans l'onglet Verifier");
+        Label note = new Label("Vous pouvez vérifier chaque numéro de série dans l'onglet Vérifier");
         note.setStyle("-fx-text-fill: #334155; -fx-font-size: 13px;");
 
         Region bottomSpacer = new Region();
         HBox.setHgrow(bottomSpacer, Priority.ALWAYS);
 
         Button newOrder = new Button("Nouvelle commande");
-        Button verify = new Button("Verifier un numero");
+        Button verify = new Button("Vérifier un numéro");
 
-        newOrder.setOnAction(e -> layout.setContent(new CatalogueView(layout, orderController).getView()));
+        newOrder.setOnAction(e -> {
+            orderController.resetOrder();
+            layout.setContent(new CatalogueView(layout, orderController).getView());
+        });
         verify.setOnAction(e -> layout.setContent(new VerificationView(layout, layout.getAppController().getSerialController()).getView()));
 
         bottom.getChildren().addAll(note, bottomSpacer, newOrder, verify);
         tableCard.getChildren().addAll(tableTop, table, bottom);
 
-        VBox info = new VBox(8);
-        info.setMaxWidth(910);
-        info.setPadding(new Insets(20));
-        info.setStyle("-fx-background-color: #1e5bff; -fx-background-radius: 10;");
-        Label infoTitle = new Label("A propos des numeros de serie");
-        infoTitle.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-        Label infoText = new Label("Chaque paire de lunettes possede un numero de serie unique qui garantit son authenticite et permet de tracer son origine.");
-        infoText.setStyle("-fx-text-fill: white; -fx-font-size: 13px;");
-        info.getChildren().addAll(infoTitle, infoText);
 
-        VBox content = new VBox(20, tableCard, info);
+        VBox content = new VBox(20, tableCard);
+        content.setAlignment(Pos.CENTER);
+        content.setPadding(new Insets(40));
+
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background: #f1f6ff; -fx-background-color: #f1f6ff;");
+
+        page.getChildren().addAll(header, scrollPane);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        view.setCenter(page);
+    }
+
+    // Affiche un message d'erreur
+    private void showError(Layout layout, String errorMsg) {
+        view.getChildren().clear();
+        view.setStyle("-fx-background-color: #f1f6ff;");
+
+        VBox page = new VBox();
+        page.setStyle("-fx-background-color: #f1f6ff;");
+
+        HBox header = new HBox(15);
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(35, 0, 35, 310));
+        header.setStyle("-fx-background-color: #dc2626;");
+
+        Label errorIcon = new Label("✕");
+        errorIcon.setAlignment(Pos.CENTER);
+        errorIcon.setPrefSize(45, 45);
+        errorIcon.setStyle("""
+            -fx-background-color: white;
+            -fx-text-fill: #dc2626;
+            -fx-font-size: 28px;
+            -fx-font-weight: bold;
+            -fx-background-radius: 50;
+        """);
+
+        VBox headerText = new VBox(2);
+        Label title = new Label("Erreur de fabrication");
+        title.setStyle("-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;");
+        Label subtitle = new Label("Une erreur s'est produite lors de la fabrication");
+        subtitle.setStyle("-fx-text-fill: white; -fx-font-size: 17px;");
+        headerText.getChildren().addAll(title, subtitle);
+        header.getChildren().addAll(errorIcon, headerText);
+
+        VBox errorCard = new VBox(20);
+        errorCard.setMaxWidth(910);
+        errorCard.setStyle("""
+            -fx-background-color: white;
+            -fx-background-radius: 10;
+            -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0, 0, 7);
+        """);
+        errorCard.setPadding(new Insets(40));
+
+        Label errorTitle = new Label("Message d'erreur");
+        errorTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #020617;");
+
+        Label errorMessage = new Label(errorMsg);
+        errorMessage.setStyle("-fx-font-size: 16px; -fx-text-fill: #334155; -fx-wrap-text: true;");
+        errorMessage.setMaxWidth(800);
+
+        errorCard.getChildren().addAll(errorTitle, errorMessage);
+
+        HBox actions = new HBox(15);
+        actions.setAlignment(Pos.CENTER);
+        actions.setPadding(new Insets(20));
+
+        Button retryBtn = new Button("Réessayer");
+        retryBtn.setStyle("""
+            -fx-background-color: #dc2626;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 10 30;
+            -fx-background-radius: 8;
+            -fx-cursor: hand;
+        """);
+        retryBtn.setOnAction(e -> layout.setContent(new FabricationView(layout, orderController).getView()));
+
+        Button backBtn = new Button("Retour au catalogue");
+        backBtn.setStyle("""
+            -fx-background-color: #6b7280;
+            -fx-text-fill: white;
+            -fx-font-size: 16px;
+            -fx-padding: 10 30;
+            -fx-background-radius: 8;
+            -fx-cursor: hand;
+        """);
+        backBtn.setOnAction(e -> layout.setContent(new CatalogueView(layout, orderController).getView()));
+
+        actions.getChildren().addAll(retryBtn, backBtn);
+
+        VBox content = new VBox(20, errorCard, actions);
         content.setAlignment(Pos.CENTER);
         content.setPadding(new Insets(40));
 

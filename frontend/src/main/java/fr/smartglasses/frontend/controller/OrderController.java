@@ -1,83 +1,116 @@
 package fr.smartglasses.frontend.controller;
 
-import fr.smartglasses.frontend.model.GlassesModel;
-import fr.smartglasses.frontend.model.Order;
-import fr.smartglasses.frontend.model.SerialNumber;
+import fr.smartglasses.frontend.model.*;
+import fr.smartglasses.frontend.service.ClientMqtt;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class OrderController {
 
-    private final Random random = new Random();
+    // Commande en cours
     private Order currentOrder;
+    // Informations sur les lunettes de la commande en cours
+    private StringProperty infosCommandeProperty = new SimpleStringProperty("");
 
-    private final List<GlassesModel> catalogue = List.of(
-            new GlassesModel(
-                    "BANANA",
-                    "Bananaaaa",
-                    "Design iconique des annees 50, parfait pour un look vintage et decontracte.",
-                    "89.99 EUR",
-                    "/images/banana.png",
-                    "Nouveau"
-            ),
-            new GlassesModel(
-                    "CHATGPT",
-                    "BlaBlaBla",
-                    "Lunettes style aviateur avec verres polarises et monture en metal dore.",
-                    "74.99 EUR",
-                    "/images/chatgpt.png",
-                    ""
-            ),
-            new GlassesModel(
-                    "LECHAT",
-                    "Miaousse",
-                    "Lunettes de vue sophistiquees avec monture fine et design contemporain.",
-                    "129.99 EUR",
-                    "/images/le_chat.png",
-                    "-10%"
-            ),
-            new GlassesModel(
-                    "CLAUDE",
-                    "Claude",
-                    "Monture ultra-legere et resistante, ideale pour les activites sportives.",
-                    "99.99 EUR",
-                    "/images/claude.png",
-                    "Bestseller"
-            )
-    );
+    /*
+     * Création d'une nouvelle commande avec un modèle de lunettes et une quantité donnée
+     *
+     * @param model modèle de lunettes
+     * @param quantity quantité du modèle
+     * @return la nouvelle commande
+     */
+    public Order createOrder(GlassesModel model, int quantity) {
+        String id = "CMD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-    public List<GlassesModel> getCatalogue() {
-        return catalogue;
+        currentOrder = new Order(id);
+        currentOrder.addGlasses(model, quantity);
+
+        return currentOrder;
     }
 
-    public Order createOrder(GlassesModel model, int quantity) {
-        String id = "CMD-" + (10000000 + random.nextInt(90000000));
-        currentOrder = new Order(id, model, quantity);
-        currentOrder.startFabrication();
-        return currentOrder;
+    /*
+     * Permet d'ajouter une nouvelle paire de lunettes à la commande en cours,
+     * ou de créer une nouvelle commande et d'y ajouter la nouvelle paire si aucune n'est en cours
+     *
+     * @param model le modèle de lunettes à ajouter
+     * @param quantity la quantité à ajouter
+     */
+    public void addGlasses(GlassesModel model, int quantity) {
+        if (currentOrder == null) {
+            this.currentOrder = createOrder(model, quantity);
+        }
+
+        currentOrder.addGlasses(model, quantity);
+        refreshInfos();
+    }
+
+    /*
+     * Permet de lancer la fabrication des lunettes de la commande en cours
+     * On attend la réponse du serveur et on indique la réponse à l'utilisateur
+     */
+    public void startFabrication() {
+
+        try {
+            ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
+
+            // Construire le payload : "TYPE:QTE;TYPE:QTE"
+            StringBuilder payload = new StringBuilder();
+            for (Map.Entry<GlassesModel, Integer> entry : currentOrder.getOrder().entrySet()) {
+                payload.append(entry.getKey().code())
+                        .append(":")
+                        .append(entry.getValue())
+                        .append(";");
+            }
+
+            String deliveryPayload = client.passerCommande(currentOrder.getId(), payload.toString());
+            client.disconnect();
+
+            // Parser la réponse : "TYPE:SERIAL;TYPE:SERIAL;..."
+            List<SerialPair> serials = new ArrayList<>();
+            for (String part : deliveryPayload.split(";")) {
+                if (part.isBlank()) continue;
+                String[] kv = part.split(":");
+                if (kv.length == 2) {
+                    serials.add(new SerialPair(kv[0], kv[1]));
+                }
+            }
+
+            currentOrder.setSerialNumbers(serials);
+
+            // actualisation de la vue
+            refreshInfos();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    public void resetOrder(){
+        currentOrder = null;
+        infosCommandeProperty = new SimpleStringProperty("");
+        refreshInfos();
     }
 
     public Order getCurrentOrder() {
         return currentOrder;
     }
 
-    public Order completeCurrentOrder() {
-        if (currentOrder == null) {
-            return null;
-        }
-
-        if (!currentOrder.isCompleted()) {
-            for (int index = 0; index < currentOrder.getQuantity(); index++) {
-                currentOrder.addSerialNumber(new SerialNumber(generateSerialNumber(currentOrder.getModel())));
-            }
-            currentOrder.complete();
-        }
-
-        return currentOrder;
+    public String getInfosCommande() {
+        return currentOrder != null ? currentOrder.toString() : "Aucune commande en cours";
     }
 
-    private String generateSerialNumber(GlassesModel model) {
-        return "SN-" + model.code() + "-" + (100000 + random.nextInt(900000));
+    public void refreshInfos() {
+        infosCommandeProperty.set(getInfosCommande());
+    }
+
+    public StringProperty infosCommandeProperty() {
+        return infosCommandeProperty;
+    }
+
+    public List<GlassesModel> getCatalogue() {
+        return GlassesModel.CATALOGUE;
     }
 }

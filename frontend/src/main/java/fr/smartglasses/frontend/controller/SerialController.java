@@ -1,18 +1,31 @@
 package fr.smartglasses.frontend.controller;
 
-import fr.smartglasses.frontend.model.Order;
+import fr.smartglasses.frontend.service.ClientMqtt;
 
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Gère la vérification des numéros de série grace au serveur MQTT
+ */
 public class SerialController {
 
-    private final OrderController orderController;
-
-    public SerialController(OrderController orderController) {
-        this.orderController = orderController;
-    }
-
-    public boolean isValid(String serialNumber) {
-        Order order = orderController.getCurrentOrder();
-        return order != null && order.getSerialNumbers().stream()
-                .anyMatch(number -> number.value().equals(serialNumber));
+    /**
+     * Vérifie si un numéro de série est valide auprès du serveur
+     *
+     * @param serialNumber le numéro de série à vérifier
+     * @return un CompletableFuture qui contient vrai ou faux en fonction de la réposne du serveur
+     * @throws RuntimeException si la connexion au serveur échoue ou si le délai expire
+     */
+    public CompletableFuture<Boolean> isValid(String serialNumber) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                ClientMqtt client = new ClientMqtt("tcp://localhost:1883");
+                String response = client.verifierSerie(serialNumber);
+                client.disconnect();
+                return !response.equals("invalid");
+            } catch (Exception e) {
+                throw new RuntimeException("Erreur lors de la vérification : " + e.getMessage());
+            }
+        });
     }
 }
