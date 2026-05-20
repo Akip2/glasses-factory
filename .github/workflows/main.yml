@@ -1,0 +1,33 @@
+name: Publish Usine to GitHub Packages
+
+on:
+  release:
+    types: [created]   # Se déclenche uniquement à la création d'une release
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # Nécessaire pour pousser sur GitHub Packages
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin' # Configure automatiquement settings.xml pour GitHub Packages
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+      
+      - name: Définir la version depuis le tag de la release
+        run: echo "RELEASE_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV # Ex : tag "v1.2.0" → version Maven "1.2.0"
+
+      - name: Build et publication sur GitHub Packages
+        run: mvn --batch-mode deploy -Drevision=${{ env.RELEASE_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
