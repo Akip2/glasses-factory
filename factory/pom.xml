@@ -49,12 +49,4 @@
             <version>0.0.1</version>
         </dependency>
     </dependencies>
-
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/Akip2/glasses-factory</url>
-        </repository>
-    </distributionManagement>
 </project>
