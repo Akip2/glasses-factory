@@ -31,3 +31,9 @@ jobs:
         run: mvn --batch-mode deploy -Drevision=${{ env.RELEASE_VERSION }} -f factory/pom.xml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: usine-jar
+          path: factory/target/*.jar
