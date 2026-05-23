@@ -99,11 +99,13 @@ public class MessageManager implements MqttCallback {
      * Publie un message sur le topic donné.
      */
     private void publier(String topic, String payload) {
-        try {
-            client.publish(topic, new MqttMessage(payload.getBytes()));
-        } catch (MqttException e) {
-            throw new RuntimeException(e);
-        }
+        new Thread(() -> {
+            try {
+                client.publish(topic, new MqttMessage(payload.getBytes()));
+            } catch (MqttException e) {
+                logger.error("Erreur de publication sur {} : {}", topic, e.getMessage());
+            }
+        }).start();
     }
 
     /**
