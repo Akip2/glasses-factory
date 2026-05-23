@@ -44,7 +44,7 @@ public class ClientMqtt implements MqttCallback {
         orderResponseQueue.clear();
         client.publish("orders/" + orderId, new MqttMessage(payload.getBytes()));
 
-        String response = orderResponseQueue.poll(60, TimeUnit.SECONDS);
+        String response = orderResponseQueue.poll(180, TimeUnit.SECONDS);
 
         if (response == null) {
             throw new Exception("Timeout : pas de réponse du serveur");
