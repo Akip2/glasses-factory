@@ -1,4 +1,6 @@
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,17 +11,19 @@ import java.util.Properties;
  * Charge la configuration, initialise l'usine et démarre le serveur MQTT.
  */
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) {
         Properties config = new Properties();
         try (InputStream input = Main.class.getClassLoader().getResourceAsStream("config.properties")) {
             if (input == null) {
-                System.out.println("Fichier config.properties introuvable");
+                logger.error("Fichier config.properties introuvable");
                 return;
             }
             config.load(input);
         } catch (IOException e) {
-            System.out.println("Erreur au chargement de la config");
-            System.out.println(e.getMessage());
+            logger.error("Erreur au chargement de la config");
+            logger.error(e.getMessage());
             return;
         }
 
@@ -27,16 +31,15 @@ public class Main {
         Usine usine = new Usine(capacity);
         Serveur serveur = new Serveur(usine);
 
-        System.out.println("---LANCEMENT DU SERVEUR---");
         try {
             String url = config.getProperty("mqtt.url");
             String clientId = config.getProperty("mqtt.clientId");
 
             serveur.start(url, clientId);
 
-            System.out.println("Serveur lancé");
+            logger.info("Serveur lancé sur {}", url);
         } catch (MqttException e) {
-            System.out.println(e.getMessage());
+            logger.error(e.getMessage());
         }
     }
 }

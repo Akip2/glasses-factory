@@ -1,5 +1,7 @@
 import bernard_flou.Fabricateur;
 import org.eclipse.paho.client.mqttv3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -8,6 +10,8 @@ import java.util.Map;
  * Gère les messages MQTT entrants et orchestre les réponses.
  */
 public class MessageManager implements MqttCallback {
+    private static final Logger logger = LoggerFactory.getLogger(MessageManager.class);
+
     private final Usine usine;
     private final MqttClient client;
     private final MessageParser parser;
@@ -23,7 +27,7 @@ public class MessageManager implements MqttCallback {
      */
     @Override
     public void messageArrived(String topic, MqttMessage message) {
-        System.out.println(topic);
+        logger.info("Message reçu sur {}", topic);
 
         String[] topicSplit = topic.split("/");
         String nomTopic = topicSplit[0];
@@ -53,12 +57,14 @@ public class MessageManager implements MqttCallback {
 
             // Si le parsing du payload n'a pas levé d'exception on valide la commande et on la traite
             publier(topic + "/validated", "");
+            logger.info("Commande {} validée", orderId);
 
             try {
                 String res = traiterCommande(orderId, typeLunettes);
                 publier(topic + "/delivery", res);
+                logger.info("Commande {} livrée", orderId);
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage());
                 publier(topic + "/error", e.getMessage());
             }
         } catch (IllegalArgumentException e) {
@@ -86,7 +92,7 @@ public class MessageManager implements MqttCallback {
 
     @Override
     public void connectionLost(Throwable cause) {
-        System.out.println("Connexion perdue : " + cause.getMessage());
+        logger.error("Connexion perdue : {}", cause.getMessage());
     }
 
     /**

@@ -3,28 +3,33 @@ import bernard_flou.Fabricateur.Lunette;
 import bernard_flou.Fabricateur.TypeLunette;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 /**
  * Gère la production de lunettes en s'appuyant sur le Fabricateur.
  * Thread-safe : produire() peut être appelée par plusieurs threads simultanément.
  */
 public class Usine {
-    private final Fabricateur fabricateur;
-    private final ExecutorService executorService;
+    private final BlockingQueue<Demande> queue;
 
     /**
      * @param capacity capacité du fabricateur (nombre de lunettes par lot)
      */
     public Usine(int capacity) {
-        this.fabricateur = new Fabricateur(capacity);
-        this.executorService = Executors.newFixedThreadPool(capacity);
+        Fabricateur fabricateur = new Fabricateur(capacity);
+        ExecutorService executorService = Executors.newFixedThreadPool(capacity);
+        this.queue = new LinkedBlockingQueue<>();
+
+        Consommateur consommateur = new Consommateur(fabricateur, executorService, queue);
+        this.demarrerConsommateur(consommateur);
+    }
+
+    private void demarrerConsommateur(Consommateur consommateur) {
+        Thread thread = new Thread(consommateur);
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
@@ -34,38 +39,17 @@ public class Usine {
      * @return la liste des lunettes produites
      */
     public List<Lunette> produire(final Map<TypeLunette, Integer> typesLunettes) {
-        List<TypeLunette> aProduire = listerLunettes(typesLunettes);
-        List<Lunette> resultat = new ArrayList<>();
-
-        int capacite = fabricateur.getCapacity();
-
-        for (int debut = 0; debut < aProduire.size(); debut += capacite) {
-            int fin = Math.min(debut + capacite, aProduire.size());
-            TypeLunette[] lot = aProduire.subList(debut, fin).toArray(new TypeLunette[0]);
-
-            synchronized (this) {
-                resultat.addAll(fabriquerLot(lot));
-            }
+        List<Demande> demandes = new ArrayList<>();
+        for (TypeLunette type : listerLunettes(typesLunettes)) {
+            demandes.add(new Demande(type));
         }
 
-        return resultat;
-    }
-
-    /**
-     * Configure le fabricateur et fabrique les lunettes du lot en parallèle.
-     */
-    private List<Lunette> fabriquerLot(TypeLunette[] lot) {
-        this.fabricateur.configurer(lot);
-
-        List<Future<Lunette>> futures = new ArrayList<>();
-        for (TypeLunette type : lot) {
-            futures.add(executorService.submit(() -> this.fabricateur.fabriquer(type)));
-        }
+        queue.addAll(demandes);
 
         List<Lunette> resultat = new ArrayList<>();
-        for (Future<Lunette> future : futures) {
+        for (Demande demande : demandes) {
             try {
-                resultat.add(future.get());
+                resultat.add(demande.futur.get());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new RuntimeException("Fabrication interrompue", e);
