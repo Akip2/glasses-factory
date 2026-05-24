@@ -6,7 +6,8 @@ public class Order {
 
     // id unique de la commande
     private final String id;
-    // map contenant les modèles choisis et leur quantité
+    // HashMap contenant les modèles choisis et leur quantité
+    // On s'assure ainsi qu'un modèle ne peut être présent qu'une seule fois dans la commande
     private final Map<GlassesModel, Integer> glassesQuantity = new HashMap<>();
     // Liste contentant les modèles et leur numéro de série associé une fois la commande fabriquée
     private List<SerialPair> serialNumbers = new ArrayList<>(); // Numéros générés
