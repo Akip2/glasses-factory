@@ -3,7 +3,9 @@ import bernard_flou.Fabricateur;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Consomme les demandes de fabrication depuis la queue partagée et pilote le Fabricateur.
@@ -39,15 +41,25 @@ public class Consommateur implements Runnable {
 
                 fabricateur.configurer(types);
 
+                List<Future> futures = new ArrayList<>();
                 for (Demande demande : lot) {
-                    executorService.submit(() -> {
+                    futures.add(executorService.submit(() -> {
                         try {
                             demande.futur.complete(fabricateur.fabriquer(demande.type));
                         } catch (Exception e) {
                             demande.futur.completeExceptionally(e);
                         }
-                    });
+                    }));
                 }
+
+                for (Future<?> future : futures) {
+                    try {
+                        future.get();
+                    } catch (ExecutionException | InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
